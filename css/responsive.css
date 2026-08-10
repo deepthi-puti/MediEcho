@@ -1,0 +1,313 @@
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 768px) {
+
+    .app-header {
+
+        padding: 20px 4%;
+    }
+
+
+    main {
+
+        padding: 30px 4%;
+    }
+
+
+    .app-title {
+
+        font-size: 24px;
+    }
+
+
+    .greeting-section h2 {
+
+        font-size: 26px;
+    }
+
+
+    .bottom-navigation {
+
+        gap: 35px;
+    }
+
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 480px) {
+
+    .app-header {
+
+        padding: 16px;
+
+        align-items: flex-start;
+    }
+
+
+    .header-left {
+
+        max-width: 55%;
+    }
+
+
+    .app-title {
+
+        font-size: 22px;
+    }
+
+
+    .app-subtitle {
+
+        font-size: 11px;
+    }
+
+
+    .header-right {
+
+        gap: 7px;
+    }
+
+
+    .icon-button {
+
+        width: 38px;
+
+        height: 38px;
+    }
+
+
+    .language-selector {
+
+        padding: 7px 8px;
+    }
+
+
+    .language-selector i {
+
+        display: none;
+    }
+
+
+    .language-selector select {
+
+        font-size: 12px;
+    }
+
+
+    main {
+
+        padding: 25px 16px;
+    }
+
+
+    .greeting-section h2 {
+
+        font-size: 23px;
+    }
+
+
+    .greeting-section p {
+
+        font-size: 13px;
+    }
+
+
+    .search-box {
+
+        padding: 14px 16px;
+    }
+
+
+    .add-medicine-button {
+
+        padding: 15px;
+    }
+
+
+    .section-heading h2 {
+
+        font-size: 21px;
+    }
+
+
+    .setting-item {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .setting-item select,
+    .settings-action-button {
+
+        width: 100%;
+    }
+
+
+    .bottom-navigation {
+
+        height: 68px;
+
+        gap: 0;
+
+        justify-content: space-around;
+    }
+
+
+    .nav-item {
+
+        min-width: auto;
+    }
+
+}
+
+/* ==========================================
+   MEDICINE MODAL - MOBILE
+========================================== */
+
+@media (max-width: 480px) {
+
+    .medicine-modal {
+
+        padding: 20px;
+
+        max-height: 92vh;
+
+        border-radius: 18px;
+    }
+
+
+    .modal-header h2 {
+
+        font-size: 21px;
+    }
+
+
+    .modal-header p {
+
+        font-size: 12px;
+    }
+
+
+    .dosage-row {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .food-options {
+
+        flex-direction: column;
+    }
+
+
+    .radio-option {
+
+        width: 100%;
+    }
+
+
+    .modal-actions {
+
+        flex-direction: column;
+    }
+
+
+    .cancel-button,
+    .save-button {
+
+        width: 100%;
+    }
+
+}
+
+/* ==========================================
+   MEDICINE CARD - MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+
+    .medicine-card {
+
+        padding: 16px;
+
+        border-radius: 16px;
+    }
+
+
+    .medicine-card-header {
+
+        align-items: flex-start;
+
+        gap: 13px;
+    }
+
+
+    .medicine-card-image {
+
+        width: 75px;
+
+        height: 75px;
+
+        border-radius: 12px;
+    }
+
+
+    .medicine-placeholder {
+
+        font-size: 27px;
+    }
+
+
+    .medicine-name {
+
+        font-size: 18px;
+
+        margin-bottom: 7px;
+    }
+
+
+    .reminder-item {
+
+        padding: 11px;
+
+        flex-direction: row;
+    }
+
+
+    .reminder-time {
+
+        font-size: 13px;
+    }
+
+
+    .reminder-status {
+
+        font-size: 12px;
+
+        white-space: nowrap;
+    }
+
+
+    .medicine-card-footer {
+
+        gap: 8px;
+    }
+
+
+    .edit-medicine-btn,
+    .delete-medicine-btn {
+
+        padding: 10px 8px;
+
+        font-size: 12px;
+    }
+
+}

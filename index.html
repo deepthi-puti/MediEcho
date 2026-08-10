@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MediEcho - Medicine Reminder and Voice Assistant">
+    <title>MediEcho- Medicine Reminder</title>
+
+    <link rel="stylesheet" href="css/variable.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+        <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link rel="icon"
+            type="image/png"
+            href="images/favicon.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    
+    <div class="app">
+
+        <header class="app-header">
+
+            <div class="header-left">
+                <h1 class="app-title">
+                    MediEcho
+                </h1>
+                <p class="app-subtitle">
+                    Your Medicine Reminder
+                </p>
+            </div>
+
+            <div class="header-right">
+
+                <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+                <div class="language-selector">
+                    <i class="fa-solid fa-language" ></i>
+                    <select  id="languageSelect" aria-label="Select Reminder Language">
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="te">Telugu</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="homePage" class="page active-page">
+                <section class="greeting-section">
+                    <h2 id="greetingMessage">
+                        Good Morning! 🌷
+                    </h2>
+                    <p>
+                        Stay healthy, stay on time. 
+                    </p>
+
+                </section>
+
+                <section class="search-section">
+
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="medicineSearch" placeholder="Search Medicine here...." autocomplete="off">
+
+                    </div>
+
+                </section>
+
+                <section class="add-medicine-section">
+                    <button id="addMedicineBtn" class="add-medicine-button" type="button">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Medicine</span>
+                    </button>
+
+                </section>
+
+                <section class="today-section">
+                    <div class="section-heading">
+                        <h2>Today's Medicines</h2>
+                        <div id="todaysMedicinesContainer" class="todays-medicines-container">
+
+                            <!-- Medicines will be added here by JavaScript -->
+
+                        </div>
+                    </div>
+                    <div id="medicineList" class="medicine-list">
+                        <div id="emptyMedicineMessage" class="empty-message">
+                            <i class="fa-solid fa-pills"></i>
+                            <h3>
+                                No Medicines For Today
+                            </h3>
+                            <p>
+                                add a medicine to start your reminder schedule
+                            </p>
+
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section id="historyPage" class="page">
+                <div class="page-header">
+                    <h2>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        History
+                    </h2>
+                    <p>
+                        View youe pewvious medcine reminders.
+                    </p>
+                </div>
+                
+                <div id="historyList" class="history-list">
+                    <div class="empty-message">
+                        <i class="fa-solid fa-file-medical"></i>
+                        <h3> No history yet</h3>
+                        <p> Your medicine activity will appear here</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settingPage" class="page">
+                <div class="page-header">
+                    <h2>
+                        <i class="fa-solid fa-gear"></i>
+                        Settings
+                    </h2>
+                    <p>Customize your MediEcho experience</p>
+
+                </div>
+
+                <div class="settings-container">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <i class="fa-solid fa-language"></i>
+                        <div>
+                        <h3>
+                            Reminder Language
+                        </h3>
+                        <p>
+                            Select the language used for voice reminders.
+                        </p>
+                        </div>
+                    </div>
+                        <select id="settingsLanguage">
+
+                            <option value="en">
+                                English
+                            </option>
+
+                            <option value="hi">
+                                Hindi
+                            </option>
+
+                            <option value="te">
+                                Telugu
+                            </option>
+
+                        </select>
+
+                </div>
+               
+                    <div class="setting-item">
+
+                        <div class="setting-info">
+
+                            <i class="fa-solid fa-circle-half-stroke"></i>
+
+                            <div>
+
+                                <h3>
+                                    Appearance
+                                </h3>
+
+                                <p>
+                                    Switch between light and dark mode.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            id="settingsThemeToggle"
+                            class="settings-action-button"
+                            type="button">
+
+                            Light Mode
+
+                        </button>
+
+                    </div>
+
+                </div>
+               
+            </section>
+        </main>
+     
+        <!-- ==========================================
+     ADD MEDICINE MODAL
+=========================================== -->
+
+<div id="medicineModal"
+     class="modal-overlay">
+
+    <div class="medicine-modal">
+
+        <!-- Modal Header -->
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Add Medicine</h2>
+
+                <p>
+                    Add a medicine to your reminder schedule.
+                </p>
+            </div>
+
+            <button
+                id="closeMedicineModal"
+                class="modal-close"
+                type="button"
+                aria-label="Close">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- Medicine Form -->
+
+        <form id="medicineForm">
+
+    <!-- ==========================================
+         MEDICINE NAME
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label for="medicineName">
+            Medicine Name
+        </label>
+
+        <input
+            type="text"
+            id="medicineName"
+            placeholder="Enter medicine name"
+            required>
+
+    </div>
+
+
+    <!-- ==========================================
+         PURPOSE
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label for="medicinePurpose">
+            Purpose
+            <span>(Optional)</span>
+        </label>
+
+        <input
+            type="text"
+            id="medicinePurpose"
+            placeholder="Example: Headache">
+
+    </div>
+
+
+    <!-- ==========================================
+         NOTES
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label for="medicineNotes">
+            Notes
+            <span>(Optional)</span>
+        </label>
+
+        <textarea
+            id="medicineNotes"
+            rows="3"
+            placeholder="Add any notes about this medicine..."></textarea>
+
+    </div>
+
+
+    <!-- ==========================================
+         MEDICINE IMAGE
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label for="medicineImage">
+            Medicine Image
+            <span>(Optional)</span>
+        </label>
+
+        <input
+            type="file"
+            id="medicineImage"
+            accept="image/*">
+
+
+        <!-- Image Preview -->
+
+        <div
+            id="imagePreviewContainer"
+            class="image-preview-container">
+
+            <img
+                id="medicineImagePreview"
+                src=""
+                alt="Medicine preview">
+
+            <button
+                type="button"
+                id="removeMedicineImage"
+                class="remove-image-button">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         DOSAGE
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label>
+            Dosage
+        </label>
+
+        <div class="dosage-row">
+
+            <input
+                type="number"
+                id="medicineQuantity"
+                min="0.1"
+                step="0.1"
+                placeholder="Quantity"
+                required>
+
+
+            <select
+                id="medicineUnit"
+                required>
+
+                <option value="">
+                    Select unit
+                </option>
+
+                <option value="Tablet">
+                    Tablet
+                </option>
+
+                <option value="Capsule">
+                    Capsule
+                </option>
+
+                <option value="ml">
+                    ml
+                </option>
+
+                <option value="Drop">
+                    Drop
+                </option>
+
+                <option value="Spoon">
+                    Spoon
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         REMINDER DATE
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label for="medicineDate">
+            Reminder Date
+            <span>(Optional)</span>
+        </label>
+
+        <input
+            type="date"
+            id="medicineDate">
+
+        <small class="field-help">
+            Leave empty to receive this reminder every day.
+        </small>
+
+    </div>
+
+
+    <!-- ==========================================
+         REMINDER TIMES
+    =========================================== -->
+
+    <div class="form-group">
+
+        <div class="reminder-title-row">
+
+            <label>
+                Reminder Times
+            </label>
+
+            <button
+                type="button"
+                id="addReminderTimeBtn"
+                class="add-time-button">
+
+                <i class="fa-solid fa-plus"></i>
+                Add Time
+
+            </button>
+
+        </div>
+
+
+        <div id="reminderTimesContainer">
+
+            <!-- First reminder time -->
+
+            <div class="reminder-time-row">
+
+                <select
+                    class="reminder-hour"
+                    aria-label="Hour">
+
+                    <option value="1">01</option>
+                    <option value="2">02</option>
+                    <option value="3">03</option>
+                    <option value="4">04</option>
+                    <option value="5">05</option>
+                    <option value="6">06</option>
+                    <option value="7">07</option>
+                    <option value="8">08</option>
+                    <option value="9">09</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+
+                </select>
+
+
+                <span class="time-colon">
+                    :
+                </span>
+
+
+                <select
+                    class="reminder-minute"
+                    aria-label="Minute">
+
+                    <option value="00">00</option>
+                    <option value="05">05</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                    <option value="30">30</option>
+                    <option value="35">35</option>
+                    <option value="40">40</option>
+                    <option value="45">45</option>
+                    <option value="50">50</option>
+                    <option value="55">55</option>
+
+                </select>
+
+
+                <select
+                    class="reminder-period"
+                    aria-label="AM or PM">
+
+                    <option value="AM">
+                        AM
+                    </option>
+
+                    <option value="PM">
+                        PM
+                    </option>
+
+                </select>
+
+
+                <button
+                    type="button"
+                    class="remove-time-button"
+                    title="Remove time">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         FOOD INSTRUCTION
+    =========================================== -->
+
+    <div class="form-group">
+
+        <label>
+            Food Instruction
+            <span>(Optional)</span>
+        </label>
+
+        <div class="food-options">
+
+            <label class="radio-option">
+
+                <input
+                    type="radio"
+                    name="foodInstruction"
+                    value="Before Food">
+
+                <span>
+                    Before Food
+                </span>
+
+            </label>
+
+
+            <label class="radio-option">
+
+                <input
+                    type="radio"
+                    name="foodInstruction"
+                    value="After Food">
+
+                <span>
+                    After Food
+                </span>
+
+            </label>
+
+
+            <label class="radio-option">
+
+                <input
+                    type="radio"
+                    name="foodInstruction"
+                    value="With Food">
+
+                <span>
+                    With Food
+                </span>
+
+            </label>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         BUTTONS
+    =========================================== -->
+
+    <div class="modal-actions">
+
+        <button
+            type="button"
+            id="cancelMedicineBtn"
+            class="cancel-button">
+
+            Cancel
+
+        </button>
+
+
+        <button
+            type="submit"
+            class="save-button">
+
+            <i class="fa-solid fa-check"></i>
+
+            Save Medicine
+
+        </button>
+
+    </div>
+
+</form>
+
+    </div>
+
+</div>
+
+
+
+        <nav class="bottom-navigation"
+             aria-label="Main navigation">
+
+
+            <button
+                class="nav-item active"
+                data-page="homePage"
+                type="button">
+
+                <i class="fa-solid fa-house"></i>
+
+                <span>
+                    Home
+                </span>
+
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="historyPage"
+                type="button">
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                <span>
+                    History
+                </span>
+
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="settingsPage"
+                type="button">
+
+                <i class="fa-solid fa-gear"></i>
+
+                <span>
+                    Settings
+                </span>
+
+            </button>
+
+        </nav>
+
+    </div>
+
+    <!-- <script src="js/storage.js"></script> -->
+    <!-- <script src="js/ui.js"></script> -->
+    <script src="js/settings.js"></script>
+    <script src="js/medicine.js"></script>/
+    <!-- <script src="js/history.js"></script> -->
+    <!-- <script src="js/speech.js"></script> -->
+    <!-- <script src="js/reminder.js"></script> -->
+    <script src="js/app.js"></script>
+
+</body>
+</html>

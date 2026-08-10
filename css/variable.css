@@ -1,0 +1,71 @@
+/* ==========================================
+   MEDIECHO - THEME VARIABLES
+========================================== */
+
+:root {
+
+    /* Background */
+    --bg-color: #f5f7fb;
+
+    /* Cards */
+    --card-color: #ffffff;
+
+    /* Primary */
+    --primary-color: #4f7df3;
+    --primary-hover: #3f6fe0;
+
+    /* Text */
+    --text-color: #1f2937;
+    --heading-color: #172033;
+    --muted-text: #6b7280;
+
+    /* Borders */
+    --border-color: #e5e7eb;
+
+    /* Search */
+    --input-bg: #ffffff;
+
+    /* Navigation */
+    --nav-bg: #ffffff;
+
+    /* Shadows */
+    --shadow:
+        0 4px 18px rgba(0, 0, 0, 0.08);
+
+    /* Radius */
+    --radius-small: 10px;
+    --radius-medium: 16px;
+    --radius-large: 22px;
+
+    /* Transition */
+    --transition: 0.25s ease;
+}
+
+
+/* ==========================================
+   DARK MODE
+========================================== */
+
+[data-theme="dark"] {
+
+    --bg-color: #111827;
+
+    --card-color: #1f2937;
+
+    --primary-color: #5b8def;
+    --primary-hover: #6d9af5;
+
+    --text-color: #f3f4f6;
+    --heading-color: #ffffff;
+
+    --muted-text: #9ca3af;
+
+    --border-color: #374151;
+
+    --input-bg: #1f2937;
+
+    --nav-bg: #1f2937;
+
+    --shadow:
+        0 4px 18px rgba(0, 0, 0, 0.25);
+}
