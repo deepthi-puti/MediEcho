@@ -1940,3 +1940,62 @@ main {
     color: #e74c3c;
 
 }
+
+/* ==========================================
+   REMINDER STATUS
+========================================== */
+
+.medicine-reminder-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+
+.reminder-time {
+    font-weight: 500;
+}
+
+
+.reminder-status-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.reminder-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+.reminder-status.pending {
+    color: #777;
+}
+
+
+.reminder-status.taken {
+    color: #2e9b5b;
+}
+
+
+.reminder-status.skipped {
+    color: #d9534f;
+}
+
+
+.reminder-status.snoozed {
+    color: #d08a00;
+}
+
+
+.snooze-time {
+    font-size: 12px;
+    color: #777;
+}

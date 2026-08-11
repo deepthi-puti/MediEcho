@@ -1450,84 +1450,43 @@ function createMedicineCard(medicine) {
 
         return `
 
+    <div
+        class="reminder-item"
+        data-reminder-id="${reminder.id}">
+
+        <!-- REMINDER TIME -->
+
+        <div class="reminder-time">
+
+            <i class="fa-regular fa-clock"></i>
+
+            <span>
+                ${formatTime(reminder.time)}
+            </span>
+
+        </div>
+
+
+        <!-- REMINDER STATUS -->
+
+        <div class="reminder-actions">
+
             <div
-                class="reminder-item"
-                data-reminder-id="${reminder.id}">
+                class="reminder-status ${statusClass}">
 
+                <i class="${statusIcon}"></i>
 
-                <div class="reminder-time">
-
-                    <i class="fa-regular fa-clock"></i>
-
-                    <span>
-                        ${formatTime(reminder.time)}
-                    </span>
-
-                </div>
-
-
-                <div class="reminder-actions">
-
-
-                    <!-- STATUS -->
-
-                    <div
-                        class="reminder-status ${statusClass}">
-
-                        <i class="${statusIcon}"></i>
-
-                        <span>
-                            ${statusText}
-                        </span>
-
-                    </div>
-
-
-                    <!-- BUTTONS -->
-
-                    ${
-                        reminder.status === "pending"
-
-                        ? `
-
-                            <div class="reminder-buttons">
-
-                                <button
-                                    type="button"
-                                    class="reminder-taken-btn"
-                                    data-medicine-id="${medicine.id}"
-                                    data-reminder-id="${reminder.id}"
-                                    title="Taken">
-
-                                    <i class="fa-solid fa-check"></i>
-
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    class="reminder-skip-btn"
-                                    data-medicine-id="${medicine.id}"
-                                    data-reminder-id="${reminder.id}"
-                                    title="Skip">
-
-                                    <i class="fa-solid fa-xmark"></i>
-
-                                </button>
-
-                            </div>
-
-                        `
-
-                        : ""
-
-                    }
-
-                </div>
+                <span>
+                    ${statusText}
+                </span>
 
             </div>
 
-        `;
+        </div>
+
+    </div>
+
+`;
 
     })
     .join("");
@@ -1913,19 +1872,19 @@ document.addEventListener(
         // ==================================
 
         const foodInstruction =
-    medicine.foodInstruction || "";
+            medicine.foodInstruction || "";
 
-const foodOptions =
-    document.querySelectorAll(
-        'input[name="foodInstruction"]'
-    );
+        const foodOptions =
+            document.querySelectorAll(
+            'input[name="foodInstruction"]'
+         );
 
-foodOptions.forEach(function (option) {
+        foodOptions.forEach(function (option) {
 
-    option.checked =
-        option.value === foodInstruction;
+            option.checked =
+            option.value === foodInstruction;
 
-});
+        });
 
 
         // ==================================
