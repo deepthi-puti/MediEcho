@@ -6,6 +6,39 @@
 // ==========================================
 // MODAL ELEMENTS
 // ==========================================
+// ==========================================
+// REMINDER MODAL ELEMENTS
+// ==========================================
+
+const reminderModal =
+    document.getElementById("reminderModal");
+
+const closeReminderModal =
+    document.getElementById( "closeReminderModal");
+
+const reminderPopupImage =
+    document.getElementById("reminderPopupImage");
+
+const reminderPopupMedicineName =
+    document.getElementById("reminderPopupMedicineName");
+
+const reminderPopupDosage =
+    document.getElementById("reminderPopupDosage");
+
+const reminderPopupFoodInstruction =
+    document.getElementById("reminderPopupFoodInstruction");
+
+const reminderPopupTime =
+    document.getElementById("reminderPopupTime");
+
+const reminderTakenButton =
+    document.getElementById("reminderTakenButton");
+
+const reminderSkipButton =
+    document.getElementById("reminderSkipButton");
+
+const reminderSnoozeButton = 
+    document.getElementById("reminderSnoozeButton");
 
 const medicineModal =
     document.getElementById("medicineModal");
@@ -44,6 +77,268 @@ const removeMedicineImage =
 // Stores image as Base64
 let medicineImageBase64 = "";
 let editMedicineId = null;
+let activeReminderMedicineId = null;
+let activeReminderId = null;
+let reminderPopupShownKey = null;
+
+// ==========================================
+// OPEN REMINDER POPUP
+// ==========================================
+
+function openReminderPopup(
+    medicine,
+    reminder
+) {
+
+    activeReminderMedicineId =
+        medicine.id;
+
+    activeReminderId =
+        reminder.id;
+
+
+    // ======================================
+    // IMAGE
+    // ======================================
+
+    if (medicine.image) {
+
+        reminderPopupImage.src =
+            medicine.image;
+
+        reminderPopupImage.style.display =
+            "block";
+
+    }
+    else {
+
+        reminderPopupImage.removeAttribute(
+            "src"
+        );
+
+        reminderPopupImage.style.display =
+            "none";
+
+    }
+
+
+    // ======================================
+    // MEDICINE NAME
+    // ======================================
+
+    reminderPopupMedicineName.textContent =
+        medicine.name;
+
+
+    // ======================================
+    // DOSAGE
+    // ======================================
+
+    reminderPopupDosage.textContent =
+        `${medicine.dosage.quantity} ${medicine.dosage.unit}`;
+
+
+    // ======================================
+    // FOOD INSTRUCTION
+    // ======================================
+
+    reminderPopupFoodInstruction.textContent =
+        medicine.foodInstruction
+            ? medicine.foodInstruction
+            : "";
+
+
+    // ======================================
+    // REMINDER TIME
+    // ======================================
+
+    reminderPopupTime.textContent =
+        formatTime(reminder.time);
+
+
+    // ======================================
+    // SHOW POPUP
+    // ======================================
+
+    reminderModal.classList.add("show");
+
+}
+
+ // ==========================================
+// CHECK MEDICINE REMINDERS
+// ==========================================
+
+function checkReminders() {
+
+    const medicines = getMedicines();
+
+    if (!medicines || medicines.length === 0) {
+        return;
+    }
+
+
+    const now = new Date();
+
+    const currentHour =
+        String(now.getHours()).padStart(2, "0");
+
+    const currentMinute =
+        String(now.getMinutes()).padStart(2, "0");
+
+    const currentTime =
+        `${currentHour}:${currentMinute}`;
+
+
+    const today =
+        now.toISOString().split("T")[0];
+
+
+    medicines.forEach(function (medicine) {
+
+        // ----------------------------------
+        // CHECK WHETHER MEDICINE IS FOR TODAY
+        // ----------------------------------
+
+        if (
+            medicine.date &&
+            medicine.date !== today
+        ) {
+            return;
+        }
+
+
+        if (
+            !medicine.reminders ||
+            medicine.reminders.length === 0
+        ) {
+            return;
+        }
+
+
+        medicine.reminders.forEach(
+            function (reminder) {
+
+                // --------------------------
+                // RESET OLD STATUS
+                // --------------------------
+
+                if (
+                    reminder.statusDate !== today
+                ) {
+
+                    reminder.status =
+                        "pending";
+
+                    reminder.statusDate =
+                        today;
+
+                    reminder.snoozeUntil =
+                        null;
+
+                }
+
+
+                // --------------------------
+                // DON'T OPEN IF ALREADY DONE
+                // --------------------------
+
+                if (
+                    reminder.status === "taken" ||
+                    reminder.status === "skipped"
+                ) {
+                    return;
+                }
+
+
+                // --------------------------
+                // CHECK SNOOZE
+                // --------------------------
+
+                if (
+                    reminder.status === "snoozed"
+                ) {
+
+                    if (
+                        reminder.snoozeUntil !==
+                        currentTime
+                    ) {
+                        return;
+                    }
+
+                    // Snooze time reached
+
+                    reminder.status =
+                        "pending";
+
+                    reminder.snoozeUntil =
+                        null;
+
+                }
+
+
+                // --------------------------
+                // CHECK NORMAL REMINDER TIME
+                // --------------------------
+
+                if (
+                    reminder.time !==
+                    currentTime
+                ) {
+                    return;
+                }
+
+
+                // --------------------------
+                // OPEN POPUP
+                // --------------------------
+
+                const popupKey =
+                    `${medicine.id}_${reminder.id}_${today}_${currentTime}`;
+
+
+                    if (reminderPopupShownKey === popupKey) {
+                        return;
+                    }
+
+
+                    reminderPopupShownKey =
+                     popupKey;
+
+
+                    openReminderPopup(
+                        medicine,
+                        reminder
+                    );
+
+            }
+        );
+
+    });
+
+}
+
+// ==========================================
+// RUN REMINDER CHECKER EVERY SECOND
+// ==========================================
+
+setInterval(
+    checkReminders,
+    1000
+);
+// ==========================================
+// CLOSE REMINDER POPUP
+// ==========================================
+
+closeReminderModal.addEventListener(
+    "click",
+    function () {
+
+        reminderModal.classList.remove(
+            "show"
+        );
+
+    }
+);
 
 // ==========================================
 // OPEN MODAL
@@ -2201,3 +2496,4 @@ function createUpdatedMedicine(existingMedicine) {
 //     });
 
 // }
+
