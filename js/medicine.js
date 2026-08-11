@@ -341,6 +341,211 @@ closeReminderModal.addEventListener(
 );
 
 // ==========================================
+// TAKEN BUTTON
+// ==========================================
+
+reminderTakenButton.addEventListener(
+    "click",
+    function () {
+
+        const medicines = getMedicines();
+
+        const medicine =
+            medicines.find(
+                function (medicine) {
+
+                    return (
+                        medicine.id ===
+                        activeReminderMedicineId
+                    );
+
+                }
+            );
+
+
+        if (!medicine) {
+
+            console.error(
+                "Medicine not found."
+            );
+
+            return;
+
+        }
+
+
+        const reminder =
+            medicine.reminders.find(
+                function (reminder) {
+
+                    return (
+                        reminder.id ===
+                        activeReminderId
+                    );
+
+                }
+            );
+
+
+        if (!reminder) {
+
+            console.error(
+                "Reminder not found."
+            );
+
+            return;
+
+        }
+
+
+        // -------------------------------
+        // UPDATE ONLY THIS REMINDER
+        // -------------------------------
+
+        reminder.status =
+            "taken";
+
+
+        reminder.statusDate =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
+        reminder.snoozeUntil =
+            null;
+
+
+        // -------------------------------
+        // SAVE
+        // -------------------------------
+
+        saveMedicines(medicines);
+
+
+        // -------------------------------
+        // CLOSE POPUP
+        // -------------------------------
+
+        reminderModal.classList.remove(
+            "show"
+        );
+
+
+        // -------------------------------
+        // REFRESH HOME CARD
+        // -------------------------------
+
+        renderTodaysMedicines();
+
+    }
+);
+
+// ==========================================
+// SKIP BUTTON
+// ==========================================
+
+reminderSkipButton.addEventListener(
+    "click",
+    function () {
+
+        const medicines = getMedicines();
+
+        // Find the exact medicine
+        const medicine =
+            medicines.find(
+                function (medicine) {
+
+                    return (
+                        medicine.id ===
+                        activeReminderMedicineId
+                    );
+
+                }
+            );
+
+
+        if (!medicine) {
+
+            console.error(
+                "Medicine not found."
+            );
+
+            return;
+
+        }
+
+
+        // Find the exact reminder
+        const reminder =
+            medicine.reminders.find(
+                function (reminder) {
+
+                    return (
+                        reminder.id ===
+                        activeReminderId
+                    );
+
+                }
+            );
+
+
+        if (!reminder) {
+
+            console.error(
+                "Reminder not found."
+            );
+
+            return;
+
+        }
+
+
+        // ----------------------------------
+        // MARK ONLY THIS REMINDER AS SKIPPED
+        // ----------------------------------
+
+        reminder.status =
+            "skipped";
+
+
+        reminder.statusDate =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
+        // Clear any previous snooze
+        reminder.snoozeUntil =
+            null;
+
+
+        // ----------------------------------
+        // SAVE
+        // ----------------------------------
+
+        saveMedicines(medicines);
+
+
+        // ----------------------------------
+        // CLOSE POPUP
+        // ----------------------------------
+
+        reminderModal.classList.remove(
+            "show"
+        );
+
+
+        // ----------------------------------
+        // REFRESH MEDICINE CARD
+        // ----------------------------------
+
+        renderTodaysMedicines();
+
+    }
+);
+
+// ==========================================
 // OPEN MODAL
 // ==========================================
 
