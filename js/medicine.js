@@ -40,6 +40,15 @@ const reminderSkipButton =
 const reminderSnoozeButton = 
     document.getElementById("reminderSnoozeButton");
 
+const snoozeOptions =
+    document.getElementById( "snoozeOptions");
+
+const customSnoozeButton =
+    document.getElementById(  "customSnoozeButton");
+
+const snoozeOptionButtons =
+    document.querySelectorAll( ".snooze-option[data-minutes]");
+
 const medicineModal =
     document.getElementById("medicineModal");
 
@@ -89,6 +98,10 @@ function openReminderPopup(
     medicine,
     reminder
 ) {
+
+    snoozeOptions.classList.remove(
+        "show"
+    );
 
     activeReminderMedicineId =
         medicine.id;
@@ -164,7 +177,7 @@ function openReminderPopup(
 
 }
 
- // ==========================================
+// ==========================================
 // CHECK MEDICINE REMINDERS
 // ==========================================
 
@@ -179,6 +192,11 @@ function checkReminders() {
 
     const now = new Date();
 
+
+    // --------------------------------------
+    // CURRENT TIME
+    // --------------------------------------
+
     const currentHour =
         String(now.getHours()).padStart(2, "0");
 
@@ -189,6 +207,10 @@ function checkReminders() {
         `${currentHour}:${currentMinute}`;
 
 
+    // --------------------------------------
+    // TODAY
+    // --------------------------------------
+
     const today =
         now.toISOString().split("T")[0];
 
@@ -196,7 +218,7 @@ function checkReminders() {
     medicines.forEach(function (medicine) {
 
         // ----------------------------------
-        // CHECK WHETHER MEDICINE IS FOR TODAY
+        // CHECK MEDICINE DATE
         // ----------------------------------
 
         if (
@@ -206,6 +228,10 @@ function checkReminders() {
             return;
         }
 
+
+        // ----------------------------------
+        // CHECK REMINDERS
+        // ----------------------------------
 
         if (
             !medicine.reminders ||
@@ -218,9 +244,9 @@ function checkReminders() {
         medicine.reminders.forEach(
             function (reminder) {
 
-                // --------------------------
-                // RESET OLD STATUS
-                // --------------------------
+                // ==================================
+                // RESET STATUS FOR A NEW DAY
+                // ==================================
 
                 if (
                     reminder.statusDate !== today
@@ -235,86 +261,173 @@ function checkReminders() {
                     reminder.snoozeUntil =
                         null;
 
+                    reminder.snoozeMinutes =
+                        null;
+
                 }
 
 
-                // --------------------------
-                // DON'T OPEN IF ALREADY DONE
-                // --------------------------
+                // ==================================
+                // TAKEN / SKIPPED
+                // ==================================
 
                 if (
                     reminder.status === "taken" ||
                     reminder.status === "skipped"
                 ) {
+
                     return;
+
                 }
 
 
-                // --------------------------
-                // CHECK SNOOZE
-                // --------------------------
+                // ==================================
+                // CHECK SNOOZED REMINDER
+                // ==================================
 
                 if (
                     reminder.status === "snoozed"
                 ) {
 
                     if (
-                        reminder.snoozeUntil !==
-                        currentTime
+                        !reminder.snoozeUntil
                     ) {
+
                         return;
+
                     }
 
-                    // Snooze time reached
+
+                    const snoozeTime =
+                        Number(
+                            reminder.snoozeUntil
+                        );
+
+
+                    // Snooze time has NOT arrived
+
+                    if (
+                        Date.now() < snoozeTime
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    // ==================================
+                    // SNOOZE TIME HAS ARRIVED
+                    // ==================================
 
                     reminder.status =
                         "pending";
 
-                    reminder.snoozeUntil =
-                        null;
 
-                }
-
-
-                // --------------------------
-                // CHECK NORMAL REMINDER TIME
-                // --------------------------
-
-                if (
-                    reminder.time !==
-                    currentTime
-                ) {
-                    return;
-                }
+                    const popupKey =
+                        `${medicine.id}_${reminder.id}_snooze_${snoozeTime}`;
 
 
-                // --------------------------
-                // OPEN POPUP
-                // --------------------------
+                    if (
+                        reminderPopupShownKey ===
+                        popupKey
+                    ) {
 
-                const popupKey =
-                    `${medicine.id}_${reminder.id}_${today}_${currentTime}`;
-
-
-                    if (reminderPopupShownKey === popupKey) {
                         return;
+
                     }
 
 
                     reminderPopupShownKey =
-                     popupKey;
+                        popupKey;
 
+
+                    // Open popup immediately
+                    // DO NOT check original reminder.time
 
                     openReminderPopup(
                         medicine,
                         reminder
                     );
 
+
+                    return;
+
+                }
+
+
+                // ==================================
+                // NORMAL REMINDER
+                // ==================================
+
+                if (
+                    reminder.time !==
+                    currentTime
+                ) {
+
+                    return;
+
+                }
+
+
+                // ==================================
+                // PREVENT DUPLICATE POPUP
+                // ==================================
+
+                const popupKey =
+                    `${medicine.id}_${reminder.id}_${today}_${currentTime}`;
+
+
+                if (
+                    reminderPopupShownKey ===
+                    popupKey
+                ) {
+
+                    return;
+
+                }
+
+
+                reminderPopupShownKey =
+                    popupKey;
+
+
+                // ==================================
+                // OPEN NORMAL REMINDER POPUP
+                // ==================================
+
+                openReminderPopup(
+                    medicine,
+                    reminder
+                );
+
             }
         );
 
     });
 
+}
+
+// ==========================================
+// FORMAT SNOOZE TIME
+// ==========================================
+
+function formatSnoozeTime(timestamp) {
+
+    if (!timestamp) {
+        return "";
+    }
+
+    const date =
+        new Date(Number(timestamp));
+
+    return date.toLocaleTimeString(
+        "en-US",
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+        }
+    );
 }
 
 // ==========================================
@@ -535,7 +648,6 @@ reminderSkipButton.addEventListener(
             "show"
         );
 
-
         // ----------------------------------
         // REFRESH MEDICINE CARD
         // ----------------------------------
@@ -544,6 +656,253 @@ reminderSkipButton.addEventListener(
 
     }
 );
+
+// ==========================================
+// SHOW SNOOZE OPTIONS
+// ==========================================
+
+reminderSnoozeButton.addEventListener(
+    "click",
+    function () {
+
+        snoozeOptions.classList.toggle(
+            "show"
+        );
+
+    }
+);
+
+// ==========================================
+// SNOOZE REMINDER
+// ==========================================
+
+function snoozeReminder(minutes) {
+
+    if (!minutes || minutes <= 0) {
+
+        return;
+
+    }
+
+
+    const medicines =
+        getMedicines();
+
+
+    // --------------------------------------
+    // FIND MEDICINE
+    // --------------------------------------
+
+    const medicine =
+        medicines.find(
+            function (medicine) {
+
+                return (
+                    medicine.id ===
+                    activeReminderMedicineId
+                );
+
+            }
+        );
+
+
+    if (!medicine) {
+
+        console.error(
+            "Medicine not found."
+        );
+
+        return;
+
+    }
+
+
+    // --------------------------------------
+    // FIND EXACT REMINDER
+    // --------------------------------------
+
+    const reminder =
+        medicine.reminders.find(
+            function (reminder) {
+
+                return (
+                    reminder.id ===
+                    activeReminderId
+                );
+
+            }
+        );
+
+
+    if (!reminder) {
+
+        console.error(
+            "Reminder not found."
+        );
+
+        return;
+
+    }
+
+
+    // --------------------------------------
+    // CALCULATE SNOOZE TIME
+    // --------------------------------------
+
+    const snoozeTime =
+        Date.now() +
+        (minutes * 60 * 1000);
+
+
+    // --------------------------------------
+    // UPDATE ONLY THIS REMINDER
+    // --------------------------------------
+
+    reminder.status =
+        "snoozed";
+
+
+    reminder.snoozeUntil =
+        snoozeTime;
+
+
+    reminder.snoozeMinutes =
+        minutes;
+
+
+    reminder.statusDate =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+
+    // --------------------------------------
+    // SAVE
+    // --------------------------------------
+
+    saveMedicines(medicines);
+
+
+    // --------------------------------------
+    // CLOSE POPUP
+    // --------------------------------------
+
+    reminderModal.classList.remove(
+        "show"
+    );
+
+
+    // Hide snooze options
+
+    snoozeOptions.classList.remove(
+        "show"
+    );
+
+
+    // --------------------------------------
+    // REFRESH CARD
+    // --------------------------------------
+
+    renderTodaysMedicines();
+
+}
+
+// ==========================================
+// PRESET SNOOZE TIMES
+// ==========================================
+
+snoozeOptionButtons.forEach(
+    function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const minutes =
+                    Number(
+                        button.dataset.minutes
+                    );
+
+
+                snoozeReminder(
+                    minutes
+                );
+
+            }
+        );
+
+    }
+);
+
+// ==========================================
+// CUSTOM SNOOZE
+// ==========================================
+
+customSnoozeButton.addEventListener(
+    "click",
+    function () {
+
+        const input =
+            prompt(
+                "Enter snooze time in minutes:"
+            );
+
+
+        if (input === null) {
+
+            return;
+
+        }
+
+
+        const minutes =
+            Number(input);
+
+
+        if (
+            !Number.isFinite(minutes) ||
+            minutes <= 0
+        ) {
+
+            alert(
+                "Please enter a valid number of minutes."
+            );
+
+            return;
+
+        }
+
+
+        snoozeReminder(
+            minutes
+        );
+
+    }
+);
+
+function formatTimestampTime(timestamp) {
+
+    if (!timestamp) {
+        return "";
+    }
+
+
+    const date =
+        new Date(
+            Number(timestamp)
+        );
+
+
+    return date.toLocaleTimeString(
+        "en-US",
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+        }
+    );
+
+}
 
 // ==========================================
 // OPEN MODAL
@@ -1921,7 +2280,7 @@ function createMedicineCard(medicine) {
 
         let statusIcon = "fa-regular fa-clock";
 
-        let statusText = "Pending";
+        let statusHTML = `<span> Pending</span>`;
 
 
         // Taken
@@ -1931,7 +2290,7 @@ function createMedicineCard(medicine) {
 
             statusIcon = "fa-solid fa-check";
 
-            statusText = "Taken";
+            statusHTML = `<span>Taken</span>`;
 
         }
 
@@ -1943,9 +2302,28 @@ function createMedicineCard(medicine) {
 
             statusIcon = "fa-solid fa-xmark";
 
-            statusText = "Skipped";
+            statusHTML = `<span> Skipped </span>`;
 
         }
+
+        else if (reminder.status === "snoozed"){
+            statusClass ="snoozed";
+            statusIcon = "fa-solid fa-bell";
+
+            const snoozeTime = formatSnoozeTime(reminder.snoozeUntil);
+               statusHTML = `
+
+                        <div class="snoozed-status-content">
+
+                        <span>Snoozed</span>
+                        <small>Reminds at ${snoozeTime}</small>
+
+                        </div>
+
+                        `;
+        }
+
+        
 
 
         return `
@@ -1976,10 +2354,7 @@ function createMedicineCard(medicine) {
 
                 <i class="${statusIcon}"></i>
 
-                <span>
-                    ${statusText}
-                </span>
-
+                ${statusHTML}
             </div>
 
         </div>
@@ -2092,6 +2467,24 @@ function createMedicineCard(medicine) {
 
 }
 
+// ==========================================
+// FORMAT SNOOZE TIME
+// ==========================================
+
+function formatSnoozeTime(timestamp) {
+
+    if (!timestamp) {
+        return "";
+    }
+
+    const date = new Date(Number(timestamp));
+
+    return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    });
+}
 
 // ==========================================
 // RENDER TODAY'S MEDICINES
@@ -2682,23 +3075,5 @@ function createUpdatedMedicine(existingMedicine) {
 
 }
 
-// ==========================================
-// LOAD EXISTING REMINDER TIMES
-// ==========================================
 
-// function loadExistingReminderTimes(reminders) {
-
-//     reminderTimesContainer.innerHTML = "";
-
-
-//     reminders.forEach(function (reminder) {
-
-//         // Use your existing function that creates
-//         // a reminder time row.
-
-//         addTimeRow(reminder.time);
-
-//     });
-
-// }
 
