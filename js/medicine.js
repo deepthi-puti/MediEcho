@@ -10,45 +10,6 @@
 // REMINDER MODAL ELEMENTS
 // ==========================================
 
-const reminderModal =
-    document.getElementById("reminderModal");
-
-const closeReminderModal =
-    document.getElementById( "closeReminderModal");
-
-const reminderPopupImage =
-    document.getElementById("reminderPopupImage");
-
-const reminderPopupMedicineName =
-    document.getElementById("reminderPopupMedicineName");
-
-const reminderPopupDosage =
-    document.getElementById("reminderPopupDosage");
-
-const reminderPopupFoodInstruction =
-    document.getElementById("reminderPopupFoodInstruction");
-
-const reminderPopupTime =
-    document.getElementById("reminderPopupTime");
-
-const reminderTakenButton =
-    document.getElementById("reminderTakenButton");
-
-const reminderSkipButton =
-    document.getElementById("reminderSkipButton");
-
-const reminderSnoozeButton = 
-    document.getElementById("reminderSnoozeButton");
-
-const snoozeOptions =
-    document.getElementById( "snoozeOptions");
-
-const customSnoozeButton =
-    document.getElementById(  "customSnoozeButton");
-
-const snoozeOptionButtons =
-    document.querySelectorAll( ".snooze-option[data-minutes]");
-
 const medicineModal =
     document.getElementById("medicineModal");
 
@@ -86,823 +47,6 @@ const removeMedicineImage =
 // Stores image as Base64
 let medicineImageBase64 = "";
 let editMedicineId = null;
-let activeReminderMedicineId = null;
-let activeReminderId = null;
-let reminderPopupShownKey = null;
-
-// ==========================================
-// OPEN REMINDER POPUP
-// ==========================================
-
-function openReminderPopup(
-    medicine,
-    reminder
-) {
-
-    snoozeOptions.classList.remove(
-        "show"
-    );
-
-    activeReminderMedicineId =
-        medicine.id;
-
-    activeReminderId =
-        reminder.id;
-
-
-    // ======================================
-    // IMAGE
-    // ======================================
-
-    if (medicine.image) {
-
-        reminderPopupImage.src =
-            medicine.image;
-
-        reminderPopupImage.style.display =
-            "block";
-
-    }
-    else {
-
-        reminderPopupImage.removeAttribute(
-            "src"
-        );
-
-        reminderPopupImage.style.display =
-            "none";
-
-    }
-
-
-    // ======================================
-    // MEDICINE NAME
-    // ======================================
-
-    reminderPopupMedicineName.textContent =
-        medicine.name;
-
-
-    // ======================================
-    // DOSAGE
-    // ======================================
-
-    reminderPopupDosage.textContent =
-        `${medicine.dosage.quantity} ${medicine.dosage.unit}`;
-
-
-    // ======================================
-    // FOOD INSTRUCTION
-    // ======================================
-
-    reminderPopupFoodInstruction.textContent =
-        medicine.foodInstruction
-            ? medicine.foodInstruction
-            : "";
-
-
-    // ======================================
-    // REMINDER TIME
-    // ======================================
-
-    reminderPopupTime.textContent =
-        formatTime(reminder.time);
-
-
-    // ======================================
-    // SHOW POPUP
-    // ======================================
-
-    reminderModal.classList.add("show");
-
-}
-
-// ==========================================
-// CHECK MEDICINE REMINDERS
-// ==========================================
-
-function checkReminders() {
-
-    const medicines = getMedicines();
-
-    if (!medicines || medicines.length === 0) {
-        return;
-    }
-
-
-    const now = new Date();
-
-
-    // --------------------------------------
-    // CURRENT TIME
-    // --------------------------------------
-
-    const currentHour =
-        String(now.getHours()).padStart(2, "0");
-
-    const currentMinute =
-        String(now.getMinutes()).padStart(2, "0");
-
-    const currentTime =
-        `${currentHour}:${currentMinute}`;
-
-
-    // --------------------------------------
-    // TODAY
-    // --------------------------------------
-
-    const today =
-        now.toISOString().split("T")[0];
-
-
-    medicines.forEach(function (medicine) {
-
-        // ----------------------------------
-        // CHECK MEDICINE DATE
-        // ----------------------------------
-
-        if (
-            medicine.date &&
-            medicine.date !== today
-        ) {
-            return;
-        }
-
-
-        // ----------------------------------
-        // CHECK REMINDERS
-        // ----------------------------------
-
-        if (
-            !medicine.reminders ||
-            medicine.reminders.length === 0
-        ) {
-            return;
-        }
-
-
-        medicine.reminders.forEach(
-            function (reminder) {
-
-                // ==================================
-                // RESET STATUS FOR A NEW DAY
-                // ==================================
-
-                if (
-                    reminder.statusDate !== today
-                ) {
-
-                    reminder.status =
-                        "pending";
-
-                    reminder.statusDate =
-                        today;
-
-                    reminder.snoozeUntil =
-                        null;
-
-                    reminder.snoozeMinutes =
-                        null;
-
-                }
-
-
-                // ==================================
-                // TAKEN / SKIPPED
-                // ==================================
-
-                if (
-                    reminder.status === "taken" ||
-                    reminder.status === "skipped"
-                ) {
-
-                    return;
-
-                }
-
-
-                // ==================================
-                // CHECK SNOOZED REMINDER
-                // ==================================
-
-                if (
-                    reminder.status === "snoozed"
-                ) {
-
-                    if (
-                        !reminder.snoozeUntil
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    const snoozeTime =
-                        Number(
-                            reminder.snoozeUntil
-                        );
-
-
-                    // Snooze time has NOT arrived
-
-                    if (
-                        Date.now() < snoozeTime
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    // ==================================
-                    // SNOOZE TIME HAS ARRIVED
-                    // ==================================
-
-                    reminder.status =
-                        "pending";
-
-
-                    const popupKey =
-                        `${medicine.id}_${reminder.id}_snooze_${snoozeTime}`;
-
-
-                    if (
-                        reminderPopupShownKey ===
-                        popupKey
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    reminderPopupShownKey =
-                        popupKey;
-
-
-                    // Open popup immediately
-                    // DO NOT check original reminder.time
-
-                    openReminderPopup(
-                        medicine,
-                        reminder
-                    );
-
-
-                    return;
-
-                }
-
-
-                // ==================================
-                // NORMAL REMINDER
-                // ==================================
-
-                if (
-                    reminder.time !==
-                    currentTime
-                ) {
-
-                    return;
-
-                }
-
-
-                // ==================================
-                // PREVENT DUPLICATE POPUP
-                // ==================================
-
-                const popupKey =
-                    `${medicine.id}_${reminder.id}_${today}_${currentTime}`;
-
-
-                if (
-                    reminderPopupShownKey ===
-                    popupKey
-                ) {
-
-                    return;
-
-                }
-
-
-                reminderPopupShownKey =
-                    popupKey;
-
-
-                // ==================================
-                // OPEN NORMAL REMINDER POPUP
-                // ==================================
-
-                openReminderPopup(
-                    medicine,
-                    reminder
-                );
-
-            }
-        );
-
-    });
-
-}
-
-// ==========================================
-// FORMAT SNOOZE TIME
-// ==========================================
-
-function formatSnoozeTime(timestamp) {
-
-    if (!timestamp) {
-        return "";
-    }
-
-    const date =
-        new Date(Number(timestamp));
-
-    return date.toLocaleTimeString(
-        "en-US",
-        {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true
-        }
-    );
-}
-
-// ==========================================
-// RUN REMINDER CHECKER EVERY SECOND
-// ==========================================
-
-setInterval(
-    checkReminders,
-    1000
-);
-// ==========================================
-// CLOSE REMINDER POPUP
-// ==========================================
-
-closeReminderModal.addEventListener(
-    "click",
-    function () {
-
-        reminderModal.classList.remove(
-            "show"
-        );
-
-    }
-);
-
-// ==========================================
-// TAKEN BUTTON
-// ==========================================
-
-reminderTakenButton.addEventListener(
-    "click",
-    function () {
-
-        const medicines = getMedicines();
-
-        const medicine =
-            medicines.find(
-                function (medicine) {
-
-                    return (
-                        medicine.id ===
-                        activeReminderMedicineId
-                    );
-
-                }
-            );
-
-
-        if (!medicine) {
-
-            console.error(
-                "Medicine not found."
-            );
-
-            return;
-
-        }
-
-
-        const reminder =
-            medicine.reminders.find(
-                function (reminder) {
-
-                    return (
-                        reminder.id ===
-                        activeReminderId
-                    );
-
-                }
-            );
-
-
-        if (!reminder) {
-
-            console.error(
-                "Reminder not found."
-            );
-
-            return;
-
-        }
-
-
-        // -------------------------------
-        // UPDATE ONLY THIS REMINDER
-        // -------------------------------
-
-        reminder.status =
-            "taken";
-
-
-        reminder.statusDate =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-
-        reminder.snoozeUntil =
-            null;
-
-
-        // -------------------------------
-        // SAVE
-        // -------------------------------
-
-        saveMedicines(medicines);
-
-
-        // -------------------------------
-        // CLOSE POPUP
-        // -------------------------------
-
-        reminderModal.classList.remove(
-            "show"
-        );
-
-
-        // -------------------------------
-        // REFRESH HOME CARD
-        // -------------------------------
-
-        renderTodaysMedicines();
-
-    }
-);
-
-// ==========================================
-// SKIP BUTTON
-// ==========================================
-
-reminderSkipButton.addEventListener(
-    "click",
-    function () {
-
-        const medicines = getMedicines();
-
-        // Find the exact medicine
-        const medicine =
-            medicines.find(
-                function (medicine) {
-
-                    return (
-                        medicine.id ===
-                        activeReminderMedicineId
-                    );
-
-                }
-            );
-
-
-        if (!medicine) {
-
-            console.error(
-                "Medicine not found."
-            );
-
-            return;
-
-        }
-
-
-        // Find the exact reminder
-        const reminder =
-            medicine.reminders.find(
-                function (reminder) {
-
-                    return (
-                        reminder.id ===
-                        activeReminderId
-                    );
-
-                }
-            );
-
-
-        if (!reminder) {
-
-            console.error(
-                "Reminder not found."
-            );
-
-            return;
-
-        }
-
-
-        // ----------------------------------
-        // MARK ONLY THIS REMINDER AS SKIPPED
-        // ----------------------------------
-
-        reminder.status =
-            "skipped";
-
-
-        reminder.statusDate =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-
-        // Clear any previous snooze
-        reminder.snoozeUntil =
-            null;
-
-
-        // ----------------------------------
-        // SAVE
-        // ----------------------------------
-
-        saveMedicines(medicines);
-
-
-        // ----------------------------------
-        // CLOSE POPUP
-        // ----------------------------------
-
-        reminderModal.classList.remove(
-            "show"
-        );
-
-        // ----------------------------------
-        // REFRESH MEDICINE CARD
-        // ----------------------------------
-
-        renderTodaysMedicines();
-
-    }
-);
-
-// ==========================================
-// SHOW SNOOZE OPTIONS
-// ==========================================
-
-reminderSnoozeButton.addEventListener(
-    "click",
-    function () {
-
-        snoozeOptions.classList.toggle(
-            "show"
-        );
-
-    }
-);
-
-// ==========================================
-// SNOOZE REMINDER
-// ==========================================
-
-function snoozeReminder(minutes) {
-
-    if (!minutes || minutes <= 0) {
-
-        return;
-
-    }
-
-
-    const medicines =
-        getMedicines();
-
-
-    // --------------------------------------
-    // FIND MEDICINE
-    // --------------------------------------
-
-    const medicine =
-        medicines.find(
-            function (medicine) {
-
-                return (
-                    medicine.id ===
-                    activeReminderMedicineId
-                );
-
-            }
-        );
-
-
-    if (!medicine) {
-
-        console.error(
-            "Medicine not found."
-        );
-
-        return;
-
-    }
-
-
-    // --------------------------------------
-    // FIND EXACT REMINDER
-    // --------------------------------------
-
-    const reminder =
-        medicine.reminders.find(
-            function (reminder) {
-
-                return (
-                    reminder.id ===
-                    activeReminderId
-                );
-
-            }
-        );
-
-
-    if (!reminder) {
-
-        console.error(
-            "Reminder not found."
-        );
-
-        return;
-
-    }
-
-
-    // --------------------------------------
-    // CALCULATE SNOOZE TIME
-    // --------------------------------------
-
-    const snoozeTime =
-        Date.now() +
-        (minutes * 60 * 1000);
-
-
-    // --------------------------------------
-    // UPDATE ONLY THIS REMINDER
-    // --------------------------------------
-
-    reminder.status =
-        "snoozed";
-
-
-    reminder.snoozeUntil =
-        snoozeTime;
-
-
-    reminder.snoozeMinutes =
-        minutes;
-
-
-    reminder.statusDate =
-        new Date()
-            .toISOString()
-            .split("T")[0];
-
-
-    // --------------------------------------
-    // SAVE
-    // --------------------------------------
-
-    saveMedicines(medicines);
-
-
-    // --------------------------------------
-    // CLOSE POPUP
-    // --------------------------------------
-
-    reminderModal.classList.remove(
-        "show"
-    );
-
-
-    // Hide snooze options
-
-    snoozeOptions.classList.remove(
-        "show"
-    );
-
-
-    // --------------------------------------
-    // REFRESH CARD
-    // --------------------------------------
-
-    renderTodaysMedicines();
-
-}
-
-// ==========================================
-// PRESET SNOOZE TIMES
-// ==========================================
-
-snoozeOptionButtons.forEach(
-    function (button) {
-
-        button.addEventListener(
-            "click",
-            function () {
-
-                const minutes =
-                    Number(
-                        button.dataset.minutes
-                    );
-
-
-                snoozeReminder(
-                    minutes
-                );
-
-            }
-        );
-
-    }
-);
-
-// ==========================================
-// CUSTOM SNOOZE
-// ==========================================
-
-customSnoozeButton.addEventListener(
-    "click",
-    function () {
-
-        const input =
-            prompt(
-                "Enter snooze time in minutes:"
-            );
-
-
-        if (input === null) {
-
-            return;
-
-        }
-
-
-        const minutes =
-            Number(input);
-
-
-        if (
-            !Number.isFinite(minutes) ||
-            minutes <= 0
-        ) {
-
-            alert(
-                "Please enter a valid number of minutes."
-            );
-
-            return;
-
-        }
-
-
-        snoozeReminder(
-            minutes
-        );
-
-    }
-);
-
-function formatTimestampTime(timestamp) {
-
-    if (!timestamp) {
-        return "";
-    }
-
-
-    const date =
-        new Date(
-            Number(timestamp)
-        );
-
-
-    return date.toLocaleTimeString(
-        "en-US",
-        {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true
-        }
-    );
-
-}
 
 // ==========================================
 // OPEN MODAL
@@ -1025,28 +169,6 @@ medicineImage.addEventListener(
         }
 
         compressMedicineImage(file);
-
-        // const reader = new FileReader();
-
-
-        // reader.onload = function (event) {
-
-        //     medicineImageBase64 =
-        //         event.target.result;
-
-
-        //     medicineImagePreview.src =
-        //         medicineImageBase64;
-
-
-        //     imagePreviewContainer.classList.add(
-        //         "show"
-        //     );
-
-        // };
-
-
-        // reader.readAsDataURL(file);
 
     }
 );
@@ -1486,51 +608,7 @@ firstRemoveButton.addEventListener(
 
     }
 );
-// ==========================================
-// MEDICINE STORAGE
-// ==========================================
 
-const MEDICINES_STORAGE_KEY = "mediecho_medicines";
-
-
-function getMedicines() {
-
-    const medicines =
-        localStorage.getItem(
-            MEDICINES_STORAGE_KEY
-        );
-
-    if (!medicines) {
-
-        return [];
-
-    }
-
-    try {
-
-        return JSON.parse(medicines);
-
-    } catch (error) {
-
-        console.error(
-            "Error reading medicines:",
-            error
-        );
-
-        return [];
-
-    }
-}
-
-
-function saveMedicines(medicines) {
-
-    localStorage.setItem(
-        MEDICINES_STORAGE_KEY,
-        JSON.stringify(medicines)
-    );
-
-}
 
 // ==========================================
 // GET SELECTED FOOD INSTRUCTION
@@ -2165,307 +1243,7 @@ function formatTime(time24) {
 
 }
 
-// ==========================================
-// CREATE MEDICINE CARD
-// ==========================================
 
-function createMedicineCard(medicine) {
-
-    const card = document.createElement("div");
-
-    card.className = "medicine-card";
-
-    card.dataset.id = medicine.id;
-
-
-    // ======================================
-    // IMAGE
-    // ======================================
-
-    const imageHTML = medicine.image
-
-        ? `
-            <img
-                src="${medicine.image}"
-                alt="${medicine.name}"
-                class="medicine-card-image">
-          `
-
-        : `
-            <div class="medicine-card-image medicine-placeholder">
-
-                <i class="fa-solid fa-pills"></i>
-
-            </div>
-          `;
-
-
-    // ======================================
-    // PURPOSE
-    // ======================================
-
-    const purposeHTML = medicine.purpose
-
-        ? `
-            <div class="medicine-detail">
-
-                <span class="detail-label">
-                    Purpose
-                </span>
-
-                <span class="detail-value">
-                    ${medicine.purpose}
-                </span>
-
-            </div>
-          `
-
-        : "";
-
-
-    // ======================================
-    // NOTES
-    // ======================================
-
-    const notesHTML = medicine.notes
-
-        ? `
-            <div class="medicine-notes-section">
-
-                <span class="detail-label">
-                    Notes
-                </span>
-
-                <p class="medicine-notes">
-                    ${medicine.notes}
-                </p>
-
-            </div>
-          `
-
-        : "";
-
-
-    // ======================================
-    // FOOD INSTRUCTION
-    // ======================================
-
-    const foodHTML = medicine.foodInstruction
-
-        ? `
-            <div class="medicine-detail">
-
-                <span class="detail-label">
-                    Food Instruction
-                </span>
-
-                <span class="detail-value">
-                    ${medicine.foodInstruction}
-                </span>
-
-            </div>
-          `
-
-        : "";
-
-
-    // ======================================
-    // REMINDER TIMES
-    // ======================================
-
-    const reminderHTML = medicine.reminders
-    .map(function (reminder) {
-
-        let statusClass = "pending";
-
-        let statusIcon = "fa-regular fa-clock";
-
-        let statusHTML = `<span> Pending</span>`;
-
-
-        // Taken
-        if (reminder.status === "taken") {
-
-            statusClass = "taken";
-
-            statusIcon = "fa-solid fa-check";
-
-            statusHTML = `<span>Taken</span>`;
-
-        }
-
-
-        // Skipped
-        else if (reminder.status === "skipped") {
-
-            statusClass = "skipped";
-
-            statusIcon = "fa-solid fa-xmark";
-
-            statusHTML = `<span> Skipped </span>`;
-
-        }
-
-        else if (reminder.status === "snoozed"){
-            statusClass ="snoozed";
-            statusIcon = "fa-solid fa-bell";
-
-            const snoozeTime = formatSnoozeTime(reminder.snoozeUntil);
-               statusHTML = `
-
-                        <div class="snoozed-status-content">
-
-                        <span>Snoozed</span>
-                        <small>Reminds at ${snoozeTime}</small>
-
-                        </div>
-
-                        `;
-        }
-
-        
-
-
-        return `
-
-    <div
-        class="reminder-item"
-        data-reminder-id="${reminder.id}">
-
-        <!-- REMINDER TIME -->
-
-        <div class="reminder-time">
-
-            <i class="fa-regular fa-clock"></i>
-
-            <span>
-                ${formatTime(reminder.time)}
-            </span>
-
-        </div>
-
-
-        <!-- REMINDER STATUS -->
-
-        <div class="reminder-actions">
-
-            <div
-                class="reminder-status ${statusClass}">
-
-                <i class="${statusIcon}"></i>
-
-                ${statusHTML}
-            </div>
-
-        </div>
-
-    </div>
-
-`;
-
-    })
-    .join("");
-
-
-    // ======================================
-    // CARD HTML
-    // ======================================
-
-    card.innerHTML = `
-
-        <div class="medicine-card-header">
-
-            <div class="medicine-image-wrapper">
-
-                ${imageHTML}
-
-            </div>
-
-
-            <div class="medicine-main-info">
-
-                <h3 class="medicine-name">
-                    ${medicine.name}
-                </h3>
-
-
-                <div class="medicine-dosage">
-
-                    <i class="fa-solid fa-pills"></i>
-
-                    <span>
-                        ${medicine.dosage.quantity}
-                        ${medicine.dosage.unit}
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="medicine-details">
-
-            ${purposeHTML}
-
-            ${foodHTML}
-
-        </div>
-
-
-        ${notesHTML}
-
-
-        <div class="medicine-reminders-section">
-
-            <h4>
-                Reminder Times
-            </h4>
-
-
-            <div class="medicine-reminders">
-
-                ${reminderHTML}
-
-            </div>
-
-        </div>
-
-
-        <div class="medicine-card-footer">
-
-            <button
-                type="button"
-                class="edit-medicine-btn"
-                data-id="${medicine.id}">
-
-                <i class="fa-solid fa-pen"></i>
-
-                Edit
-
-            </button>
-
-
-            <button
-                type="button"
-                class="delete-medicine-btn"
-                data-id="${medicine.id}">
-
-                <i class="fa-solid fa-trash"></i>
-
-                Delete
-
-            </button>
-
-        </div>
-
-    `;
-
-
-    return card;
-
-}
 
 // ==========================================
 // FORMAT SNOOZE TIME
@@ -2486,97 +1264,7 @@ function formatSnoozeTime(timestamp) {
     });
 }
 
-// ==========================================
-// RENDER TODAY'S MEDICINES
-// ==========================================
 
-function renderTodaysMedicines() {
-
-    const container =
-        document.getElementById(
-            "todaysMedicinesContainer"
-        );
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    const medicines = getMedicines();
-
-
-    const todaysMedicines =
-        medicines.filter(function (medicine) {
-
-            // Empty date = every day
-
-            if (
-                !medicine.date ||
-                medicine.date === null
-            ) {
-
-                return true;
-
-            }
-
-
-            // Fixed date = only on that date
-
-            return medicine.date === getTodayDate();
-
-        });
-
-
-    container.innerHTML = "";
-
-
-    // ======================================
-    // NO MEDICINES
-    // ======================================
-
-    if (todaysMedicines.length === 0) {
-
-        container.innerHTML = `
-
-            <div class="empty-medicines">
-
-                <i class="fa-solid fa-pills"></i>
-
-                <h3>
-                    No medicines for today
-                </h3>
-
-                <p>
-                    Add a medicine to create
-                    your reminder schedule.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    // ======================================
-    // CREATE CARDS
-    // ======================================
-
-    todaysMedicines.forEach(function (medicine) {
-
-        const card =
-            createMedicineCard(medicine);
-
-        container.appendChild(card);
-
-    });
-
-}
 
 
 // ==========================================
@@ -2862,78 +1550,7 @@ document.addEventListener(
 );
 
 
-// ==========================================
-// REMINDER BUTTON CLICKS
-// ==========================================
 
-document.addEventListener(
-    "click",
-    function (event) {
-
-
-        // ==================================
-        // TAKEN
-        // ==================================
-
-        const takenButton =
-            event.target.closest(
-                ".reminder-taken-btn"
-            );
-
-
-        if (takenButton) {
-
-            const medicineId =
-                takenButton.dataset.medicineId;
-
-            const reminderId =
-                takenButton.dataset.reminderId;
-
-
-            updateReminderStatus(
-                medicineId,
-                reminderId,
-                "taken"
-            );
-
-
-            return;
-
-        }
-
-
-        // ==================================
-        // SKIPPED
-        // ==================================
-
-        const skipButton =
-            event.target.closest(
-                ".reminder-skip-btn"
-            );
-
-
-        if (skipButton) {
-
-            const medicineId =
-                skipButton.dataset.medicineId;
-
-            const reminderId =
-                skipButton.dataset.reminderId;
-
-
-            updateReminderStatus(
-                medicineId,
-                reminderId,
-                "skipped"
-            );
-
-
-            return;
-
-        }
-
-    }
-);
 
 // ==========================================
 // LOAD MEDICINES ON PAGE LOAD
@@ -2943,6 +1560,7 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+        resetMedicineStatusesForNewDay();
         renderTodaysMedicines();
 
     }
@@ -3077,3 +1695,170 @@ function createUpdatedMedicine(existingMedicine) {
 
 
 
+// ==========================================
+// RESET MEDICINE STATUS FOR NEW DAY
+// ==========================================
+
+function resetMedicineStatusesForNewDay() {
+
+    const medicines =
+        getMedicines();
+
+    if (
+        !medicines ||
+        medicines.length === 0
+    ) {
+        return;
+    }
+
+
+    const today =
+        getTodayDate();
+
+
+    let medicinesChanged =
+        false;
+
+
+    medicines.forEach(
+        function (medicine) {
+
+            if (
+                !medicine.reminders ||
+                medicine.reminders.length === 0
+            ) {
+                return;
+            }
+
+
+            medicine.reminders.forEach(
+                function (reminder) {
+
+                    // --------------------------------
+                    // NO PREVIOUS DATE
+                    // --------------------------------
+
+                    if (
+                        !reminder.statusDate
+                    ) {
+
+                        reminder.status =
+                            "pending";
+
+                        reminder.statusDate =
+                            today;
+
+                        reminder.snoozeUntil =
+                            null;
+
+                        reminder.snoozeMinutes =
+                            null;
+
+                        medicinesChanged =
+                            true;
+
+                        return;
+
+                    }
+
+
+                    // --------------------------------
+                    // ALREADY TODAY
+                    // --------------------------------
+
+                    if (
+                        reminder.statusDate ===
+                        today
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    // --------------------------------
+                    // NEW DAY
+                    // --------------------------------
+
+                    const oldDate =
+                        reminder.statusDate;
+
+
+                    // Save previous day's medicine
+                    saveDayToHistory(
+                        medicine,
+                        oldDate
+                    );
+
+
+                    // Reset reminder
+                    reminder.status =
+                        "pending";
+
+
+                    reminder.statusDate =
+                        today;
+
+
+                    reminder.snoozeUntil =
+                        null;
+
+
+                    reminder.snoozeMinutes =
+                        null;
+
+
+                    medicinesChanged =
+                        true;
+
+                }
+            );
+
+        }
+    );
+
+
+    if (medicinesChanged) {
+
+        saveMedicines(
+            medicines
+        );
+
+    }
+
+}
+
+// ==========================================
+// CHECK FOR NEW DAY
+// ==========================================
+
+let lastKnownDate =
+    getTodayDate();
+
+
+setInterval(
+    function () {
+
+        const currentDate =
+            getTodayDate();
+
+
+        if (
+            currentDate !==
+            lastKnownDate
+        ) {
+
+            lastKnownDate =
+                currentDate;
+
+
+            resetMedicineStatusesForNewDay();
+
+
+            renderTodaysMedicines();
+
+        }
+
+    },
+    1000
+);

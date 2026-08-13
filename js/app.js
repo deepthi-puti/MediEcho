@@ -58,12 +58,29 @@ function showPage(pageId) {
 
 navItems.forEach((navItem) => {
 
-    navItem.addEventListener("click", function () {
+    navItem.addEventListener(
+        "click",
+        function () {
 
-        const pageId = this.getAttribute("data-page");
+            const pageId =
+                this.getAttribute("data-page");
 
-        showPage(pageId);
 
-    });
+            // Show selected page
+            showPage(pageId);
+
+
+            // ======================================
+            // LOAD HISTORY PAGE
+            // ======================================
+
+            if (pageId === "historyPage") {
+
+                renderHistory();
+
+            }
+
+        }
+    );
 
 });
