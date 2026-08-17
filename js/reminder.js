@@ -125,6 +125,7 @@ function openReminderPopup(
     // ======================================
 
     reminderModal.classList.add("show");
+    speakMedicineReminder(medicine);
 
 }
 
@@ -480,7 +481,14 @@ function snoozeReminder(minutes) {
 
     }
 
+    let currentReminderTime;
 
+    if(reminder.snoozeUntil){
+        currentReminderTime = formatSnoozeTime(reminder.snoozeUntil);
+    }
+    else{
+        currentReminderTime = reminder.time;
+    }
     // --------------------------------------
     // CALCULATE SNOOZE TIME
     // --------------------------------------
@@ -511,8 +519,13 @@ function snoozeReminder(minutes) {
             .toISOString()
             .split("T")[0];
 
-    saveDayToHistory(medicine,getTodayDate());
 
+    saveSnoozeHistoryEvent(
+    medicine,
+    currentReminderTime,
+    minutes,
+    snoozeTime
+    );
     // --------------------------------------
     // SAVE
     // --------------------------------------

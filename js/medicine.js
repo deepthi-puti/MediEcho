@@ -6,6 +6,8 @@
 // ==========================================
 // MODAL ELEMENTS
 // ==========================================
+
+
 // ==========================================
 // REMINDER MODAL ELEMENTS
 // ==========================================
@@ -39,10 +41,8 @@ const medicineImagePreview =
 const imagePreviewContainer =
     document.getElementById("imagePreviewContainer");
 
-
 const removeMedicineImage =
     document.getElementById("removeMedicineImage");
-
 
 // Stores image as Base64
 let medicineImageBase64 = "";
@@ -1324,6 +1324,15 @@ function updateReminderStatus(
     saveMedicines(medicines);
 
 
+     // ======================================
+    // SAVE TO HISTORY
+    // ======================================
+
+    saveDayToHistory(
+        medicine,
+        getTodayDate()
+    );
+
     // Re-render cards
 
     renderTodaysMedicines();
@@ -1730,7 +1739,6 @@ function resetMedicineStatusesForNewDay() {
                 return;
             }
 
-
             medicine.reminders.forEach(
                 function (reminder) {
 
@@ -1783,12 +1791,14 @@ function resetMedicineStatusesForNewDay() {
                     const oldDate =
                         reminder.statusDate;
 
+                    if (oldDate && oldDate !== today) {
 
+                        // Save the COMPLETE previous day
+                         saveDayToHistory(medicine, oldDate);
+
+                     }
                     // Save previous day's medicine
-                    saveDayToHistory(
-                        medicine,
-                        oldDate
-                    );
+                //    saveSnoozeHistoryEvent(medicine, reminderTimes, minutes, snoozeUntil);
 
 
                     // Reset reminder

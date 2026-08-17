@@ -197,7 +197,7 @@ main {
 
     max-width: 1200px;
 
-    margin: auto;
+    margin: 0 auto;
 
     padding: 35px 6%;
 }
@@ -2480,4 +2480,114 @@ main {
     font-size: 11px;
 
     opacity: 0.75;
+}
+
+/* ==========================================
+   HISTORY
+   ========================================== */
+
+.history-date-section {
+    margin-bottom: 60px;
+}
+
+
+.history-date-heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    padding: 14px;
+
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
+.history-table {
+    width: 100%;
+    overflow: hidden;
+
+    border-radius: 12px;
+}
+
+
+.history-row {
+    display: grid;
+
+    grid-template-columns:
+        1.5fr
+        1fr
+        1fr;
+
+    align-items: stretch;
+
+    /* min-height: 55px; */
+
+    padding: 10px 16px;
+
+    border-bottom: 1px solid #eee;
+}
+
+
+.history-header {
+    font-weight: 600;
+}
+
+
+.history-medicine-name,
+.history-time,
+.history-status {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.history-status {
+    font-weight: 500;
+}
+
+
+.history-status.taken {
+    color: #2e8b57;
+}
+
+
+.history-status.skipped {
+    color: #d9534f;
+}
+
+
+.history-status.snoozed {
+    color: #d99a00;
+}
+
+/* ==========================================
+   FIX HISTORY PAGE TOP EMPTY SPACE
+========================================== */
+
+#historyPage {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    position: static !important;
+    transform: none !important;
+}
+
+#historyPage.active-page {
+    display: block !important;
+}
+
+#historyPage .page-header {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+#historyPage .history-list {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
