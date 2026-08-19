@@ -90,3 +90,55 @@ function saveMedicineHistory(history) {
     );
 
 }
+
+function addHistoryEvent(
+    medicine, 
+    reminder, 
+    status,
+    historyTime, 
+    snoozeMinutes = null
+){
+    if(!medicine || !reminder){
+        return;
+    }
+
+    const history = getMedicineHistory();
+
+    const event = {
+        id : "history_"+ Date.now()+"_"+ Math.random().toString(36).substring(2,8),
+        date : getTodayDate(),
+        medicineId : medicine.id,
+        reminderId : reminder.id,
+        medicineName : medicine.name,
+
+        originalTime : reminder.time,
+        historyTime : historyTime,
+        status : status,
+        snoozeMinutes:snoozeMinutes,
+        createdAt : new Date(). toISOString()
+    };
+    history.push(event);
+    saveMedicineHistory(history);
+}
+
+// ==========================================
+// CURRENT TIME FOR HISTORY
+// ==========================================
+
+function getCurrentHistoryTime() {
+
+    const now = new Date();
+
+    const hours =
+        String(
+            now.getHours()
+        ).padStart(2, "0");
+
+    const minutes =
+        String(
+            now.getMinutes()
+        ).padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+
+}

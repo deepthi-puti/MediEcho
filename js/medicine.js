@@ -1203,35 +1203,42 @@ function isMedicineForToday(medicine) {
 
 function formatTime(time24) {
 
+    if (!time24) {
+        return "";
+    }
+
+    // Already formatted as 12-hour time
+    if (
+        time24.includes(" AM") ||
+        time24.includes(" PM")
+    ) {
+        return time24;
+    }
+
     const parts =
         time24.split(":");
 
+    if (parts.length < 2) {
+        return time24;
+    }
 
     let hour =
         parseInt(parts[0], 10);
 
-
     const minute =
         parts[1];
-
 
     const period =
         hour >= 12
             ? "PM"
             : "AM";
 
-
     if (hour === 0) {
-
         hour = 12;
-
     }
     else if (hour > 12) {
-
         hour -= 12;
-
     }
-
 
     return (
         String(hour).padStart(2, "0") +
@@ -1240,7 +1247,6 @@ function formatTime(time24) {
         " " +
         period
     );
-
 }
 
 
@@ -1313,13 +1319,20 @@ function updateReminderStatus(
 
 
     // Update ONLY this reminder
+    const historyTime = getCurrentHistoryTime();
 
-    reminder.status = newStatus;
+    // reminder.status = newStatus;
 
-    reminder.statusDate = getTodayDate();
+    // reminder.statusDate = getTodayDate();
 
 
     // Save
+    addHistoryEvent(medicine, reminder, newStatus, historyTime, null)
+
+    reminder.status = newStatus;
+    reminder.statusDate = getTodayDate();
+    reminder.snoozeUntil = null;
+    reminder.snoozeMinutes = null;
 
     saveMedicines(medicines);
 
@@ -1328,10 +1341,10 @@ function updateReminderStatus(
     // SAVE TO HISTORY
     // ======================================
 
-    saveDayToHistory(
-        medicine,
-        getTodayDate()
-    );
+    // saveDayToHistory(
+    //     medicine,
+    //     getTodayDate()
+    // );
 
     // Re-render cards
 
@@ -1794,7 +1807,7 @@ function resetMedicineStatusesForNewDay() {
                     if (oldDate && oldDate !== today) {
 
                         // Save the COMPLETE previous day
-                         saveDayToHistory(medicine, oldDate);
+                        //  saveDayToHistory(medicine, oldDate);
 
                      }
                     // Save previous day's medicine

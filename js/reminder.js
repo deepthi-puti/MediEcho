@@ -41,6 +41,7 @@ const snoozeOptionButtons =
 let reminderPopupShownKey = null;
 let activeReminderMedicineId = null;
 let activeReminderId = null;
+let activeReminderOccurrenceTime = null;
 // ==========================================
 // OPEN REMINDER POPUP
 // ==========================================
@@ -60,6 +61,8 @@ function openReminderPopup(
     activeReminderId =
         reminder.id;
 
+    activeReminderOccurrenceTime =
+        getCurrentReminderTime();
 
     // ======================================
     // IMAGE
@@ -164,7 +167,7 @@ function checkReminders() {
     // --------------------------------------
 
     const today =
-        now.toISOString().split("T")[0];
+        getTodayDate();
 
 
     medicines.forEach(function (medicine) {
@@ -416,19 +419,16 @@ closeReminderModal.addEventListener(
 function snoozeReminder(minutes) {
 
     if (!minutes || minutes <= 0) {
-
         return;
-
     }
-
 
     const medicines =
         getMedicines();
 
 
-    // --------------------------------------
+    // ======================================
     // FIND MEDICINE
-    // --------------------------------------
+    // ======================================
 
     const medicine =
         medicines.find(
@@ -454,9 +454,9 @@ function snoozeReminder(minutes) {
     }
 
 
-    // --------------------------------------
+    // ======================================
     // FIND EXACT REMINDER
-    // --------------------------------------
+    // ======================================
 
     const reminder =
         medicine.reminders.find(
@@ -481,77 +481,107 @@ function snoozeReminder(minutes) {
 
     }
 
-    let currentReminderTime;
+    // const snoozeActionDate =
+    //     new Date();
 
-    if(reminder.snoozeUntil){
-        currentReminderTime = formatSnoozeTime(reminder.snoozeUntil);
-    }
-    else{
-        currentReminderTime = reminder.time;
-    }
-    // --------------------------------------
+    // const snoozeActionHours =
+    //     String(
+    //         snoozeActionDate.getHours()
+    //     ).padStart(2, "0");
+
+    // const snoozeActionMinutes =
+    //     String(
+    //         snoozeActionDate.getMinutes()
+    //     ).padStart(2, "0");
+
+    // const snoozeActionTime =
+    //     `${snoozeActionHours}:${snoozeActionMinutes}`;
+    
+     const historyTime = getCurrentHistoryTime();
+    // ======================================
     // CALCULATE SNOOZE TIME
-    // --------------------------------------
+    // ======================================
 
     const snoozeTime =
         Date.now() +
         (minutes * 60 * 1000);
 
+    // ======================================
+    // SAVE HISTORY EVENT
+    // ======================================
 
-    // --------------------------------------
-    // UPDATE ONLY THIS REMINDER
-    // --------------------------------------
+    addHistoryEvent(
+        medicine,
+        reminder,
+        "snoozed",
+        historyTime,
+        minutes
+    );
+
+    // ======================================
+    // UPDATE REMINDER
+    // ======================================
 
     reminder.status =
         "snoozed";
 
-
     reminder.snoozeUntil =
         snoozeTime;
-
 
     reminder.snoozeMinutes =
         minutes;
 
-
     reminder.statusDate =
-        new Date()
-            .toISOString()
-            .split("T")[0];
+        getTodayDate();
 
 
-    saveSnoozeHistoryEvent(
-    medicine,
-    currentReminderTime,
-    minutes,
-    snoozeTime
+    // ======================================
+    // SAVE SNOOZE HISTORY
+    // IMPORTANT:
+    // Store ORIGINAL reminder.time
+    // in 24-hour format
+    // ======================================
+    // const historyReminderTime =
+    //     getCurrentSnoozeHistoryTime(reminder);
+
+    // saveSnoozeHistoryEvent(
+    //     medicine,
+    //     reminder.time,
+    //     minutes,
+    //     snoozeTime
+    // );
+
+
+    // ======================================
+    // SAVE MEDICINES
+    // ======================================
+
+    saveMedicines(
+        medicines
     );
-    // --------------------------------------
-    // SAVE
-    // --------------------------------------
-
-    saveMedicines(medicines);
 
 
-    // --------------------------------------
+    // ======================================
     // CLOSE POPUP
-    // --------------------------------------
+    // ======================================
 
     reminderModal.classList.remove(
         "show"
     );
 
 
-    // Hide snooze options
+    // ======================================
+    // HIDE SNOOZE OPTIONS
+    // ======================================
 
     snoozeOptions.classList.remove(
         "show"
     );
 
 
-    // --------------------------------------
-    // REFRESH CARD
-    // --------------------------------------
+    // ======================================
+    // REFRESH HOME CARD
+    // ======================================
 
     renderTodaysMedicines();
 
@@ -614,6 +644,10 @@ reminderTakenButton.addEventListener(
 
         }
 
+        const historyTime = getCurrentHistoryTime();
+
+        addHistoryEvent(medicine, reminder, "taken", historyTime, null);
+
 
         // -------------------------------
         // UPDATE ONLY THIS REMINDER
@@ -624,13 +658,12 @@ reminderTakenButton.addEventListener(
 
 
         reminder.statusDate =
-            new Date()
-                .toISOString()
-                .split("T")[0];
+            getTodayDate();
 
 
         reminder.snoozeUntil =
             null;
+        reminder.snoozeMinutes = null;
 
 
         // -------------------------------
@@ -640,7 +673,7 @@ reminderTakenButton.addEventListener(
         saveMedicines(medicines);
 
 
-        saveDayToHistory(medicine,getTodayDate());
+        // saveDayToHistory(medicine,getTodayDate());
         // -------------------------------
         // CLOSE POPUP
         // -------------------------------
@@ -663,13 +696,18 @@ reminderTakenButton.addEventListener(
 // SKIP BUTTON
 // ==========================================
 
+// ==========================================
+// SKIP BUTTON
+// ==========================================
+
 reminderSkipButton.addEventListener(
     "click",
     function () {
 
-        const medicines = getMedicines();
+        const medicines =
+            getMedicines();
 
-        // Find the exact medicine
+
         const medicine =
             medicines.find(
                 function (medicine) {
@@ -685,16 +723,11 @@ reminderSkipButton.addEventListener(
 
         if (!medicine) {
 
-            console.error(
-                "Medicine not found."
-            );
-
             return;
 
         }
 
 
-        // Find the exact reminder
         const reminder =
             medicine.reminders.find(
                 function (reminder) {
@@ -710,59 +743,75 @@ reminderSkipButton.addEventListener(
 
         if (!reminder) {
 
-            console.error(
-                "Reminder not found."
-            );
-
             return;
 
         }
 
 
-        // ----------------------------------
-        // MARK ONLY THIS REMINDER AS SKIPPED
-        // ----------------------------------
+        // ==================================
+        // HISTORY TIME
+        // ==================================
+
+        const historyTime =
+            getCurrentHistoryTime();
+
+
+        // ==================================
+        // SAVE HISTORY
+        // ==================================
+
+        addHistoryEvent(
+            medicine,
+            reminder,
+            "skipped",
+            historyTime,
+            null
+        );
+
+
+        // ==================================
+        // UPDATE REMINDER
+        // ==================================
 
         reminder.status =
             "skipped";
 
-
         reminder.statusDate =
-            new Date()
-                .toISOString()
-                .split("T")[0];
+            getTodayDate();
 
-
-        // Clear any previous snooze
         reminder.snoozeUntil =
             null;
 
+        reminder.snoozeMinutes =
+            null;
 
-        // ----------------------------------
+
+        // ==================================
         // SAVE
-        // ----------------------------------
+        // ==================================
 
-        saveMedicines(medicines);
+        saveMedicines(
+            medicines
+        );
 
-        saveDayToHistory(medicine,getTodayDate());
 
-        // ----------------------------------
-        // CLOSE POPUP
-        // ----------------------------------
+        // ==================================
+        // CLOSE
+        // ==================================
 
         reminderModal.classList.remove(
             "show"
         );
 
-        // ----------------------------------
-        // REFRESH MEDICINE CARD
-        // ----------------------------------
+
+        // ==================================
+        // REFRESH
+        // ==================================
 
         renderTodaysMedicines();
 
     }
 );
-
 // ==========================================
 // SHOW SNOOZE OPTIONS
 // ==========================================
@@ -946,3 +995,16 @@ document.addEventListener(
 
     }
 );
+
+function getCurrentReminderTime() {
+
+    const now = new Date();
+
+    const hours =
+        String(now.getHours()).padStart(2, "0");
+
+    const minutes =
+        String(now.getMinutes()).padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+}

@@ -1,159 +1,292 @@
 // ==========================================
-// HISTORY
+// MEDIECHO HISTORY PAGE
 // ==========================================
 
 
 // ==========================================
-// SAVE DAY TO HISTORY
+// HISTORY CONTAINER
 // ==========================================
 
-function saveDayToHistory(
-    medicine,
-    date
-) {
-
-    const history =
-        getMedicineHistory();
+const historyContainer =
+    document.getElementById("historyContainer");
 
 
-    // --------------------------------------
-    // CHECK REMINDERS
-    // --------------------------------------
+// ==========================================
+// FORMAT HISTORY TIME
+// ==========================================
 
-    if (
-        !medicine.reminders ||
-        medicine.reminders.length === 0
-    ) {
-        return;
+function formatHistoryTime(time24) {
+
+    if (!time24) {
+        return "";
     }
 
+    const parts = time24.split(":");
 
-    // --------------------------------------
-    // COPY REMINDER DATA
-    // --------------------------------------
-
-    const historyReminders =
-        medicine.reminders.map(
-            function (reminder) {
-
-                return {
-
-                    reminderId:
-                        reminder.id,
-
-                    time:
-                        reminder.time,
-
-                    status:
-                        reminder.status ||
-                        "pending",
-
-                    snoozeUntil:
-                        reminder.snoozeUntil ||
-                        null,
-
-                    snoozeMinutes:
-                        reminder.snoozeMinutes ||
-                        null
-
-                };
-
-            }
-        );
-
-
-    // --------------------------------------
-    // CREATE HISTORY ENTRY
-    // --------------------------------------
-
-    const historyEntry = {
-
-        id:
-            `${medicine.id}_${date}`,
-
-        medicineId:
-            medicine.id,
-
-        medicineName:
-            medicine.name,
-
-        image:
-            medicine.image || "",
-
-        dosage:
-            medicine.dosage,
-
-        purpose:
-            medicine.purpose || "",
-
-        foodInstruction:
-            medicine.foodInstruction || "",
-
-        notes:
-            medicine.notes || "",
-
-        date:
-            date,
-
-        reminders:
-            historyReminders
-
-    };
-
-
-    // --------------------------------------
-    // FIND EXISTING ENTRY
-    // --------------------------------------
-
-    const existingIndex =
-        history.findIndex(
-            function (entry) {
-
-                return (
-                    entry.medicineId ===
-                        medicine.id &&
-
-                    entry.date ===
-                        date
-                );
-
-            }
-        );
-
-
-    // --------------------------------------
-    // UPDATE EXISTING
-    // --------------------------------------
-
-    if (existingIndex !== -1) {
-
-        history[existingIndex] =
-            historyEntry;
-
+    if (parts.length < 2) {
+        return time24;
     }
 
-    // --------------------------------------
-    // CREATE NEW
-    // --------------------------------------
+    let hour = parseInt(parts[0], 10);
 
-    else {
+    const minute = parts[1];
 
-        history.push(
-            historyEntry
-        );
+    const period =
+        hour >= 12
+            ? "PM"
+            : "AM";
 
+    if (hour === 0) {
+        hour = 12;
+    }
+    else if (hour > 12) {
+        hour -= 12;
     }
 
+    return (
+        String(hour).padStart(2, "0") +
+        ":" +
+        minute +
+        " " +
+        period
+    );
+}
 
-    // --------------------------------------
-    // SAVE
-    // --------------------------------------
 
-    saveMedicineHistory(
-        history
+// ==========================================
+// FORMAT HISTORY DATE
+// ==========================================
+
+function formatHistoryDate(dateString) {
+
+    if (!dateString) {
+        return "";
+    }
+
+    const parts = String(dateString).split("-");
+
+    if (parts.length !== 3) {
+        return dateString;
+    }
+
+    const year = Number(parts[0]);
+    const month = Number(parts[1]) - 1;
+    const day = Number(parts[2]);
+
+    const date = new Date(
+        year,
+        month,
+        day
     );
 
+    return date.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        }
+    );
 }
+
+
+// ==========================================
+// STATUS HTML
+// ==========================================
+
+function getHistoryStatusHTML(event) {
+
+    if (event.status === "snoozed") {
+
+        return `
+            <span class="history-status snoozed">
+
+                <i class="fa-solid fa-bell"></i>
+
+                Snoozed
+                (${event.snoozeMinutes || 0} min)
+
+            </span>
+        `;
+    }
+
+
+    if (event.status === "taken") {
+
+        return `
+            <span class="history-status taken">
+
+                <i class="fa-solid fa-check"></i>
+
+                Taken
+
+            </span>
+        `;
+    }
+
+
+    if (event.status === "skipped") {
+
+        return `
+            <span class="history-status skipped">
+
+                <i class="fa-solid fa-xmark"></i>
+
+                Skipped
+
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="history-status">
+            ${event.status || ""}
+        </span>
+    `;
+}
+
+
+// ==========================================
+// CREATE HISTORY ROW
+// ==========================================
+
+function createHistoryRow(event) {
+
+    const row =
+        document.createElement("div");
+
+    row.className = "history-row";
+
+    row.innerHTML = `
+
+        <div class="history-medicine">
+
+            <span class="history-label">
+                Medicine
+            </span>
+
+            <strong>
+                ${event.medicineName || ""}
+            </strong>
+
+        </div>
+
+
+        <div class="history-time">
+
+            <span class="history-label">
+                Time
+            </span>
+
+            <span>
+                ${formatHistoryTime(event.historyTime)}
+            </span>
+
+        </div>
+
+
+        <div class="history-status-column">
+
+            <span class="history-label">
+                Status
+            </span>
+
+            ${getHistoryStatusHTML(event)}
+
+        </div>
+
+    `;
+
+    return row;
+}
+
+
+// ==========================================
+// CREATE DATE SECTION
+// ==========================================
+
+function createHistoryDateSection(date, events) {
+
+    const section =
+        document.createElement("div");
+
+    section.className =
+        "history-date-section";
+
+
+    const rowsHTML =
+        events
+            .map(function (event) {
+
+                return createHistoryRow(event).outerHTML;
+
+            })
+            .join("");
+
+
+    section.innerHTML = `
+
+        <div class="history-date-header">
+
+            <div class="history-date-title">
+
+                <i class="fa-regular fa-calendar"></i>
+
+                <h3>
+                    ${formatHistoryDate(date)}
+                </h3>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="delete-date-btn"
+                data-date="${date}">
+
+                <i class="fa-solid fa-trash"></i>
+
+                Delete
+
+            </button>
+
+        </div>
+
+
+        <div class="history-table">
+
+            <div class="history-table-header">
+
+                <div>
+                    Medicine Name
+                </div>
+
+                <div>
+                    Time
+                </div>
+
+                <div>
+                    Status
+                </div>
+
+            </div>
+
+
+            <div class="history-table-body">
+
+                ${rowsHTML}
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    return section;
+}
+
 
 // ==========================================
 // RENDER HISTORY
@@ -162,149 +295,39 @@ function saveDayToHistory(
 function renderHistory() {
 
     const container =
-        document.getElementById("historyList");
-
+        document.getElementById("historyContainer");
 
     if (!container) {
-
-        console.warn(
-            "historyList not found."
-        );
-
         return;
-
     }
 
 
-    const medicineHistory =
+    const history =
         getMedicineHistory();
 
 
-    const snoozeHistory =
-        getSnoozeHistory();
-
-
-    // ======================================
-    // COMBINE HISTORY
-    // ======================================
-
-    const historyRows = [];
-
-
-    // ======================================
-    // TAKEN / SKIPPED
-    // ======================================
-
-    medicineHistory.forEach(
-        function (entry) {
-
-            if (
-                !entry.reminders ||
-                entry.reminders.length === 0
-            ) {
-
-                return;
-
-            }
-
-
-            entry.reminders.forEach(
-                function (reminder) {
-
-                    // Only show actual actions
-                    // Pending should not appear
-
-                    if (
-                        reminder.status !== "taken" &&
-                        reminder.status !== "skipped"
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    historyRows.push({
-
-                        date:
-                            entry.date,
-
-                        medicineName:
-                            entry.medicineName,
-
-                        time:
-                            reminder.time,
-
-                        status:
-                            reminder.status,
-
-                        snoozeMinutes:
-                            null,
-
-                        snoozeUntil:
-                            null
-
-                    });
-
-                }
-            );
-
-        }
-    );
-
-
-    // ======================================
-    // SNOOZED
-    // ======================================
-
-    snoozeHistory.forEach(
-        function (entry) {
-
-            historyRows.push({
-
-                date:
-                    entry.date,
-
-                medicineName:
-                    entry.medicineName,
-
-                time:
-                    entry.time,
-
-                status:
-                    "snoozed",
-
-                snoozeMinutes:
-                    entry.snoozeMinutes,
-
-                snoozeUntil:
-                    entry.snoozeUntil
-
-            });
-
-        }
-    );
+    container.innerHTML = "";
 
 
     // ======================================
     // NO HISTORY
     // ======================================
 
-    if (historyRows.length === 0) {
+    if (!Array.isArray(history) || history.length === 0) {
 
         container.innerHTML = `
 
-            <div class="empty-message">
+            <div class="history-empty">
 
-                <i class="fa-solid fa-file-medical"></i>
+                <i class="fa-solid fa-clock-rotate-left"></i>
 
                 <h3>
-                    No history yet
+                    No medicine history yet
                 </h3>
 
                 <p>
                     Your medicine activity
-                    will appear here
+                    will appear here.
                 </p>
 
             </div>
@@ -312,7 +335,6 @@ function renderHistory() {
         `;
 
         return;
-
     }
 
 
@@ -323,577 +345,297 @@ function renderHistory() {
     const groupedHistory = {};
 
 
-    historyRows.forEach(
-        function (row) {
+    history.forEach(function (event) {
 
-            if (!groupedHistory[row.date]) {
-
-                groupedHistory[row.date] = [];
-
-            }
+        if (!event || !event.date) {
+            return;
+        }
 
 
-            groupedHistory[row.date].push(
-                row
-            );
+        const eventDate =
+            String(event.date);
+
+
+        if (!groupedHistory[eventDate]) {
+
+            groupedHistory[eventDate] = [];
 
         }
-    );
+
+
+        groupedHistory[eventDate].push(event);
+
+    });
 
 
     // ======================================
-    // SORT DATES - NEWEST FIRST
+    // SORT DATES
+    // NEWEST FIRST
     // ======================================
 
     const dates =
-        Object.keys(groupedHistory)
-            .sort()
-            .reverse();
+        Object.keys(groupedHistory).sort(
+            function (a, b) {
 
+                return b.localeCompare(a);
 
-    container.innerHTML = "";
-
-
-    // ======================================
-    // CREATE DATE SECTIONS
-    // ======================================
-
-    dates.forEach(
-        function (date) {
-
-            const dateSection =
-                document.createElement("div");
-
-            dateSection.className =
-                "history-date-section";
-
-
-            // ==================================
-            // DATE HEADING
-            // ==================================
-
-            const dateHeading =
-                document.createElement("div");
-
-            dateHeading.className =
-                "history-date-heading";
-
-            dateHeading.innerHTML = `
-
-                <i class="fa-regular fa-calendar"></i>
-
-                <span>
-                    ${formatHistoryDate(date)}
-                </span>
-
-            `;
-
-
-            // ==================================
-            // TABLE
-            // ==================================
-
-            const table =
-                document.createElement("div");
-
-            table.className =
-                "history-table";
-
-
-            // ==================================
-            // TABLE HEADER
-            // ==================================
-
-            table.innerHTML = `
-
-                <div class="history-row history-header">
-
-                    <div>
-                        Medicine Name
-                    </div>
-
-                    <div>
-                        Time
-                    </div>
-
-                    <div>
-                        Status
-                    </div>
-
-                </div>
-
-            `;
-
-
-            // ==================================
-            // SORT ROWS BY TIME
-            // ==================================
-
-            const rows =
-                groupedHistory[date]
-                    .sort(
-                        function (a, b) {
-
-                            return convertHistoryTimeToMinutes(
-                                a.time
-                            )
-                            -
-                            convertHistoryTimeToMinutes(
-                                b.time
-                            );
-
-                        }
-                    );
-
-
-            // ==================================
-            // CREATE ROWS
-            // ==================================
-
-            rows.forEach(
-                function (row) {
-
-                    let statusClass =
-                        "";
-
-                    let statusIcon =
-                        "";
-
-                    let statusText =
-                        "";
-
-
-                    // ==========================
-                    // TAKEN
-                    // ==========================
-
-                    if (
-                        row.status === "taken"
-                    ) {
-
-                        statusClass =
-                            "taken";
-
-                        statusIcon =
-                            "fa-check";
-
-                        statusText =
-                            "Taken";
-
-                    }
-
-
-                    // ==========================
-                    // SKIPPED
-                    // ==========================
-
-                    else if (
-                        row.status === "skipped"
-                    ) {
-
-                        statusClass =
-                            "skipped";
-
-                        statusIcon =
-                            "fa-xmark";
-
-                        statusText =
-                            "Skipped";
-
-                    }
-
-
-                    // ==========================
-                    // SNOOZED
-                    // ==========================
-
-                    else if (
-                        row.status === "snoozed"
-                    ) {
-
-                        statusClass =
-                            "snoozed";
-
-                        statusIcon =
-                            "fa-bell";
-
-
-                        statusText =
-                            `Snoozed (${row.snoozeMinutes} min)`;
-
-                    }
-
-
-                    const historyRow =
-                        document.createElement("div");
-
-                    historyRow.className =
-                        "history-row";
-
-
-                    historyRow.innerHTML = `
-
-                        <div class="history-medicine-name">
-
-                            <i class="fa-solid fa-pills"></i>
-
-                            <span>
-                                ${row.medicineName}
-                            </span>
-
-                        </div>
-
-
-                        <div class="history-time">
-
-                            <i class="fa-regular fa-clock"></i>
-
-                            <span>
-                                ${formatTime(row.time)}
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            class="history-status ${statusClass}">
-
-                            <i
-                                class="fa-solid ${statusIcon}">
-                            </i>
-
-                            <span>
-                                ${statusText}
-                            </span>
-
-                        </div>
-
-                    `;
-
-
-                    table.appendChild(
-                        historyRow
-                    );
-
-                }
-            );
-
-
-            dateSection.appendChild(
-                dateHeading
-            );
-
-
-            dateSection.appendChild(
-                table
-            );
-
-
-            container.appendChild(
-                dateSection
-            );
-
-        }
-    );
-
-}
-
-// ==========================================
-// FORMAT HISTORY DATE
-// ==========================================
-
-function formatHistoryDate(dateString) {
-
-    const date =
-        new Date(
-            dateString + "T00:00:00"
+            }
         );
 
 
-    return date.toLocaleDateString(
-        "en-US",
-        {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        }
+    // ======================================
+    // CREATE SECTIONS
+    // ======================================
+
+    dates.forEach(function (date) {
+
+        const events =
+            groupedHistory[date];
+
+
+        // ==================================
+        // SORT EVENTS
+        // NEWEST TIME FIRST
+        // ==================================
+
+        events.sort(function (a, b) {
+
+            const timeA =
+                a.historyTime ||
+                a.time ||
+                "00:00";
+
+            const timeB =
+                b.historyTime ||
+                b.time ||
+                "00:00";
+
+            return timeB.localeCompare(timeA);
+
+        });
+
+
+        const section =
+            createHistoryDateSection(
+                date,
+                events
+            );
+
+
+        container.appendChild(section);
+
+    });
+
+}
+
+
+// ==========================================
+// DELETE ONE DATE
+// ==========================================
+
+function deleteDateHistory(date) {
+
+    console.log(
+        "DELETE DATE CLICKED:",
+        date
+    );
+
+
+    const history =
+        getMedicineHistory();
+
+
+    console.log(
+        "CURRENT HISTORY:",
+        history
+    );
+
+
+    if (!Array.isArray(history) || history.length === 0) {
+
+        alert(
+            "There is no history to delete."
+        );
+
+        return;
+    }
+
+
+    const formattedDate =
+        formatHistoryDate(date);
+
+
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete the history for ${formattedDate}?`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    // ======================================
+    // REMOVE SELECTED DATE
+    // ======================================
+
+    const updatedHistory =
+        history.filter(function (event) {
+
+            return String(event.date) !== String(date);
+
+        });
+
+
+    console.log(
+        "UPDATED HISTORY:",
+        updatedHistory
+    );
+
+
+    // ======================================
+    // SAVE CORRECT HISTORY
+    // ======================================
+
+    saveMedicineHistory(
+        updatedHistory
+    );
+
+
+    // ======================================
+    // RENDER AGAIN
+    // ======================================
+
+    renderHistory();
+
+}
+
+
+// ==========================================
+// CLEAR ALL HISTORY
+// ==========================================
+
+function clearAllHistory() {
+
+    console.log(
+        "CLEAR ALL HISTORY CLICKED"
+    );
+
+
+    const history =
+        getMedicineHistory();
+
+
+    if (!Array.isArray(history) || history.length === 0) {
+
+        alert(
+            "There is no history to clear."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to clear ALL medicine history?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    // ======================================
+    // REMOVE ACTUAL HISTORY KEY
+    // ======================================
+
+    localStorage.removeItem(
+        HISTORY_STORAGE_KEY
+    );
+
+
+    // ======================================
+    // RENDER EMPTY HISTORY
+    // ======================================
+
+    renderHistory();
+
+
+    alert(
+        "All medicine history has been cleared."
     );
 
 }
 
-// ==========================================
-// CONVERT TIME TO MINUTES
-// ==========================================
-
-function convertHistoryTimeToMinutes(time) {
-
-    if (!time) {
-
-        return "";
-
-    }
-
-   // Already in 12-hour format
-    if (time.includes("AM") || time.includes("PM")) {
-        return time;
-    }
-
-    const parts = time.split(":");
-
-    if (parts.length < 2) {
-        return time;
-    }
-
-    let hour = Number(parts[0]);
-    const minute = parts[1];
-
-    const period = hour >= 12 ? "PM" : "AM";
-
-    hour = hour % 12;
-
-    if (hour === 0) {
-        hour = 12;
-    }
-
-    return `${String(hour).padStart(2, "0")}:${minute} ${period}`;
-
-}
-
 
 // ==========================================
-// CREATE HISTORY CARD
+// EVENT DELEGATION
 // ==========================================
 
-function createHistoryCard(entry) {
-
-    const card =
-        document.createElement("div");
-
-    card.className =
-        "history-card";
+document.addEventListener(
+    "click",
+    function (event) {
 
 
-    // ======================================
-    // REMINDERS
-    // ======================================
+        // ==================================
+        // DELETE DATE
+        // ==================================
 
-    const remindersHTML =
-        entry.reminders
-            .map(
-                function (reminder) {
-
-                    let statusClass =
-                        "pending";
-
-                    let statusIcon =
-                        "fa-clock";
-
-                    let statusText =
-                        "Pending";
+        const deleteDateButton =
+            event.target.closest(
+                ".delete-date-btn"
+            );
 
 
-                    // TAKEN
-                    if (
-                        reminder.status ===
-                        "taken"
-                    ) {
+        if (deleteDateButton) {
 
-                        statusClass =
-                            "taken";
-
-                        statusIcon =
-                            "fa-check";
-
-                        statusText =
-                            "Taken";
-
-                    }
+            const date =
+                deleteDateButton.dataset.date;
 
 
-                    // SKIPPED
-                    else if (
-                        reminder.status ===
-                        "skipped"
-                    ) {
+            if (!date) {
 
-                        statusClass =
-                            "skipped";
+                console.error(
+                    "History date is missing."
+                );
 
-                        statusIcon =
-                            "fa-xmark";
-
-                        statusText =
-                            "Skipped";
-
-                    }
+                return;
+            }
 
 
-                    // SNOOZED
-                    else if (
-                        reminder.status ===
-                        "snoozed"
-                    ) {
+            deleteDateHistory(date);
 
-                        statusClass =
-                            "snoozed";
-
-                        statusIcon =
-                            "fa-bell";
-
-                        statusText =
-                            "Snoozed";
-
-                    }
+            return;
+        }
 
 
-                    return `
+        // ==================================
+        // CLEAR ALL
+        // ==================================
 
-                        <div
-                            class="history-reminder">
-
-                            <div
-                                class="history-reminder-time">
-
-                                <i
-                                    class="fa-regular fa-clock">
-                                </i>
-
-                                <span>
-                                    ${formatTime(
-                                        reminder.time
-                                    )}
-                                </span>
-
-                            </div>
+        const clearButton =
+            event.target.closest(
+                "#clearHistoryBtn"
+            );
 
 
-                            <div
-                                class="history-reminder-status ${statusClass}">
+        if (clearButton) {
 
-                                <i
-                                    class="fa-solid ${statusIcon}">
-                                </i>
+            clearAllHistory();
 
-                                <span>
-                                    ${statusText}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-
-    // ======================================
-    // MEDICINE IMAGE
-    // ======================================
-
-    let imageHTML = "";
-
-
-    if (entry.image) {
-
-        imageHTML = `
-
-            <img
-                src="${entry.image}"
-                alt="${entry.medicineName}"
-                class="history-medicine-image">
-
-        `;
+            return;
+        }
 
     }
-
-    else {
-
-        imageHTML = `
-
-            <div
-                class="history-medicine-placeholder">
-
-                <i
-                    class="fa-solid fa-pills">
-                </i>
-
-            </div>
-
-        `;
-
-    }
+);
 
 
-    // ======================================
-    // CARD
-    // ======================================
-
-    card.innerHTML = `
-
-        <div class="history-card-header">
-
-
-            <div class="history-medicine-info">
-
-                ${imageHTML}
-
-
-                <div>
-
-                    <h3>
-                        ${entry.medicineName}
-                    </h3>
-
-
-                    <p>
-
-                        ${
-                            entry.dosage
-                                ? entry.dosage.quantity
-                                : ""
-                        }
-
-                        ${
-                            entry.dosage
-                                ? " " + entry.dosage.unit
-                                : ""
-                        }
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="history-date">
-
-                <i
-                    class="fa-regular fa-calendar">
-                </i>
-
-                ${entry.date}
-
-            </div>
-
-        </div>
-
-
-        <div class="history-reminders">
-
-            ${remindersHTML}
-
-        </div>
-
-    `;
-
-
-    return card;
-
-}
+// ==========================================
+// LOAD HISTORY
+// ==========================================
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -903,108 +645,3 @@ document.addEventListener(
 
     }
 );
-
-// ==========================================
-// SNOOZE HISTORY STORAGE
-// ==========================================
-
-const SNOOZE_HISTORY_KEY =
-    "mediecho_snooze_history";
-
-
-function getSnoozeHistory() {
-
-    const history =
-        localStorage.getItem(
-            SNOOZE_HISTORY_KEY
-        );
-
-
-    if (!history) {
-
-        return [];
-
-    }
-
-
-    try {
-
-        return JSON.parse(
-            history
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Error reading snooze history:",
-            error
-        );
-
-        return [];
-
-    }
-
-}
-
-
-function saveSnoozeHistory(
-    history
-) {
-
-    localStorage.setItem(
-        SNOOZE_HISTORY_KEY,
-        JSON.stringify(history)
-    );
-
-}
-
-// ==========================================
-// SAVE SNOOZE EVENT
-// ==========================================
-
-function saveSnoozeHistoryEvent(
-    medicine,
-    reminderTime,
-    snoozeMinutes,
-    snoozeUntil
-) {
-
-    const history =
-        getSnoozeHistory();
-
-
-    history.push({
-
-        id:
-            `${medicine.id}_${Date.now()}`,
-
-        date:
-            getTodayDate(),
-
-        medicineId:
-            medicine.id,
-
-        medicineName:
-            medicine.name,
-
-        time:
-            reminderTime,
-
-        status:
-            "snoozed",
-
-        snoozeMinutes:
-            snoozeMinutes,
-
-        snoozeUntil:
-            snoozeUntil
-
-    });
-
-
-    saveSnoozeHistory(
-        history
-    );
-
-}
