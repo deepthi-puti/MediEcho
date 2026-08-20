@@ -1898,85 +1898,56 @@ if (medicineSearch) {
     medicineSearch.addEventListener("input", function () {
 
         const searchText =
-            medicineSearch.value
-                .trim()
-                .toLowerCase();
-
+            this.value.trim().toLowerCase();
 
         const container =
             document.getElementById(
                 "todaysMedicinesContainer"
             );
 
-
         if (!container) {
             return;
         }
 
-
-        const medicines = getMedicines();
-
-
-        // If search box is empty,
-        // show the normal today's medicines
         if (searchText === "") {
 
             renderTodaysMedicines();
 
             return;
-
         }
 
+        const medicines = getMedicines();
 
-        // Search all saved medicines
-        const filteredMedicines =
-            medicines.filter(function (medicine) {
+        const results = medicines.filter(function (medicine) {
 
-                return medicine.name
-                    .toLowerCase()
-                    .includes(searchText);
+            const medicineName =
+                medicine.name || "";
 
-            });
+            return medicineName
+                .toLowerCase()
+                .includes(searchText);
 
+        });
 
         container.innerHTML = "";
 
-
-        // ======================================
-        // NO SEARCH RESULT
-        // ======================================
-
-        if (filteredMedicines.length === 0) {
+        if (results.length === 0) {
 
             container.innerHTML = `
-
                 <div class="empty-medicines">
-
                     <i class="fa-solid fa-magnifying-glass"></i>
-
-                    <h3>
-                        No medicine found
-                    </h3>
-
+                    <h3>No medicine found</h3>
                     <p>
                         No medicine matches
-                        "${medicineSearch.value}"
+                        "${this.value}"
                     </p>
-
                 </div>
-
             `;
 
             return;
-
         }
 
-
-        // ======================================
-        // DISPLAY SEARCH RESULTS
-        // ======================================
-
-        filteredMedicines.forEach(function (medicine) {
+        results.forEach(function (medicine) {
 
             const card =
                 createMedicineCard(medicine);
